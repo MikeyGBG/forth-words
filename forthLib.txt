@@ -1,0 +1,90 @@
+-------fizzbuzz--------------------------------------------------------------------------
+( n -- n )
+: 5mod 5 mod 0= ;
+( n -- n )
+: 3mod 3 mod 0= ;
+( n -- n )
+: 53mod dup 3mod if 5mod if ." fizzbuzz" 3 else ." fizz" 2 then else drop 1 then ;
+( n -- n)
+: modchk dup 53mod 1 = if 5mod if ." buzz" 0 else 1 then else drop 0 then ; 
+( -- )
+: fbuzz 100 for 100 r@ - dup modchk 1 = if . else drop then next ;
+---------------------GENERAL------------------------------------------------------------
+
+( n -- n)
+/Gets the decimal representation from a bitPos
+: getBNum 1 swap dup 0= if drop else lshift then ;
+
+( uu -- u)
+/bitMask takes a value and a bit position and returns the value at the bit, bitPos is NOS
+: bitMask swap getBNum and 0= if 0 else 1 then ;
+
+( uu -- )
+/expects TOS to be reg Addr and NOS to be the bitPos
+: setBit tuck c@ swap getBNum or swap c! ;
+
+( uu -- )
+/see setBit
+: clrBit tuck c@ swap getBNum invert and swap c! ;
+
+( -- )
+/pinVar used to store a bitPos and everything portVar stores
+: pinVar create 4 cells + allot does> 0 cells + ;
+
+( -- )
+/portVar array of pinVar
+: portVar create 4 , 4 * cells allot does> dup @ swap * cells + ;
+
+( un -- )
+/Initializes a pinvar to input or output expects a pinvar TOS and DDR NOS
+/may not need the cells + part if does takes care of this
+: pinInit dup @ swap 1 cells + @ rot 0= if clrBit else setBit then ;
+
+/pinVAR TOS value NOS
+/may not need cells +
+: setPin dup @ swap 2 cells + @ rot 0= if clrBit else setBit then ;
+
+( n -- n )
+/pinVar TOS
+: readPin dup @ swap 3 cells + @ bitMask ;
+
+$02c0 constant trisa
+$02c2 constant porta
+$02c4 constant lata
+
+$02c8 constant trisb
+$02ca constant portb
+$02cc constant latb
+
+$02d0 constant trisc
+$02d2 constant portc
+$02d4 constant latc
+--------------------------- LCD ---------------------------------------------------------
+variables
+
+data -> 8 pin addresses
+EN -> 1 pin address
+RS -> 1 pin address
+
+( f -- )
+/Load TOS onto RS
+: rsOut 0= if RS 0 ! else RS 1 ! then ;
+
+( f -- )
+/Set EN high or low
+: enOut 0= if EN 0 ! else RS 1 ! then ;
+
+( fu -- )
+/set databit takes address and a value where value is TOS
+: setBit 0= if 0 swap c! else 1 swap c! then ;
+
+
+( c -- )
+/Load TOS into data uses lowest 8 bits
+/loop through data array with bit shift and set data
+: setData 7 for r@ bitmask data r@ cells + swap setBit next ;
+
+( c -- )
+/writes a char to the LCD NEEDS DELAYS ADDED AROUND TOGGLE EN NEED MULTI_TASKING FOR DELAY?
+: writeChar 1 rsOut setData 1 enOut 0 enOut ;
+
