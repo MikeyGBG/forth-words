@@ -1,4 +1,4 @@
--------fizzbuzz--------------------------------------------------------------------------
+/ -------fizzbuzz---------------------------------
 ( n -- n )
 : 5mod 5 mod 0= ;
 ( n -- n )
@@ -9,44 +9,43 @@
 : modchk dup 53mod 1 = if 5mod if ." buzz" 0 else 1 then else drop 0 then ; 
 ( -- )
 : fbuzz 100 for 100 r@ - dup modchk 1 = if . else drop then next ;
----------------------GENERAL------------------------------------------------------------
+/ ---------------------GENERAL----------------------------------------
 
 ( n -- n)
 /Gets the decimal representation from a bitPos
 : getBNum 1 swap dup 0= if drop else lshift then ;
 
 ( uu -- u)
-/bitMask takes a value and a bit position and returns the value at the bit, bitPos is NOS
+/ bitMask takes a value and a bit position and returns the value at the bit
+/ bitPos is NOS
 : bitMask swap getBNum and 0= if 0 else 1 then ;
 
 ( uu -- )
-/expects TOS to be reg Addr and NOS to be the bitPos
-: setBit tuck c@ swap getBNum or swap c! ;
+/ expects TOS to be reg Addr and NOS to be the bitPos
+: setBit tuck @ swap getBNum or swap ! ;
 
 ( uu -- )
 /see setBit
-: clrBit tuck c@ swap getBNum invert and swap c! ;
+: clrBit tuck @ swap getBNum invert and swap ! ;
 
 ( -- )
-/pinVar used to store a bitPos and everything portVar stores
-: pinVar create 4 cells + allot does> 0 cells + ;
+/ pinVar used to store a bitPos and everything portVar stores
+: pinVar create 4 cells allot ;
 
-( -- )
-/portVar array of pinVar
-: portVar create 4 , 4 * cells allot does> dup @ swap * cells + ;
+: getIx swap 1 cells + @ swap cells + ;
 
 ( un -- )
-/Initializes a pinvar to input or output expects a pinvar TOS and DDR NOS
-/may not need the cells + part if does takes care of this
-: pinInit dup @ swap 1 cells + @ rot 0= if clrBit else setBit then ;
+/ Initializes a pinvar to input or output expects a pinvar TOS and DDR NOS
+: pinInit dup @ swap 1 getIx @ rot 0= if clrBit else setBit then ;
 
-/pinVAR TOS value NOS
-/may not need cells +
-: setPin dup @ swap 2 cells + @ rot 0= if clrBit else setBit then ;
+/ pinVAR TOS value NOS
+: setPin dup @ swap 2 getIx @ rot 0= if clrBit else setBit then ;
 
 ( n -- n )
-/pinVar TOS
-: readPin dup @ swap 3 cells + @ bitMask ;
+/ pinVar TOS
+: readPin dup @ swap 3 getIx @ bitMask ;
+
+/ ------PIC24FV32K301----------------------
 
 $02c0 constant trisa
 $02c2 constant porta
@@ -59,32 +58,80 @@ $02cc constant latb
 $02d0 constant trisc
 $02d2 constant portc
 $02d4 constant latc
---------------------------- LCD ---------------------------------------------------------
-variables
 
-data -> 8 pin addresses
-EN -> 1 pin address
-RS -> 1 pin address
+create aport trisa , lata , porta ,
+create bport trisb , latb , portb ,
+create cport trisc , latc , portc ,
 
-( f -- )
-/Load TOS onto RS
-: rsOut 0= if RS 0 ! else RS 1 ! then ;
+create a0 0 , aport ,
+create a1 1 , aport ,
+create a2 2 , aport ,
+create a3 3 , aport ,
+create a4 4 , aport ,
+create a5 5 , aport ,
+create a6 6 , aport ,
 
-( f -- )
-/Set EN high or low
-: enOut 0= if EN 0 ! else RS 1 ! then ;
+create b0 0 , bport ,
+create b1 1 , bport ,
+create b2 2 , bport ,
+create b4 5 , bport ,
+create b7 7 , bport ,
+create b8 8 , bport ,
+create b9 9 , bport ,
+create b12 12 , bport ,
+create b13 13 , bport ,
+create b14 14 , bport ,
+create b15 15 , bport ,
+/ --------------------------- LCD --------------------
 
-( fu -- )
-/set databit takes address and a value where value is TOS
-: setBit 0= if 0 swap c! else 1 swap c! then ;
+a0 value LCD_RS
+a1 value LCD_EN
+b0 value LCD_D0
+b1 value LCD_D1
+a2 value LCD_D2
+a3 value LCD_D3
+b4 value LCD_D4
+a4 value LCD_D5
+b8 value LCD_D6
+b9 value LCD_D7
 
+100 value togDel
+8 value mode
+
+0 LCD_RS pinInit
+0 LCD_EN pinInit
+0 LCD_D0 pinInit
+0 LCD_D1 pinInit
+0 LCD_D2 pinInit
+0 LCD_D3 pinInit
+0 LCD_D4 pinInit
+0 LCD_D5 pinInit
+0 LCD_D6 pinInit
+0 LCD_D7 pinInit
+
+: lcdArr create 
+LCD_D0 , LCD_D1 , LCD_D2 , LCD_D3 ,
+8 mode = if
+LCD_D4 , LCD_D5 , LCD_D6 , LCD_D7 , 
+then ;
+
+( -- )
+/ toggles the LCD enable pin with a dealy of togDel ms
+: lcdEN 1 LCD_EN setBit togDel ms 0 LCD_EN setBit togDel ms;
+
+( n -- )
+/ sets the RS bit to the value on TOS
+: lcdRS LCD_RS setBit ;
 
 ( c -- )
-/Load TOS into data uses lowest 8 bits
-/loop through data array with bit shift and set data
-: setData 7 for r@ bitmask data r@ cells + swap setBit next ;
+: lcdLoad 8 for 
+    7 r@ - swap bitMask
+    lcdArr 7 r@ - cells + @
+    setPin
+    next ;
 
 ( c -- )
-/writes a char to the LCD NEEDS DELAYS ADDED AROUND TOGGLE EN NEED MULTI_TASKING FOR DELAY?
-: writeChar 1 rsOut setData 1 enOut 0 enOut ;
+: lcdChar 1 lcdRs lcdLoad lcdEn ;
+
+
 
