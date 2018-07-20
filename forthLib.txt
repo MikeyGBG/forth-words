@@ -36,16 +36,25 @@
 
 ( un -- )
 / Initializes a pinvar to input or output expects a pinvar TOS and DDR NOS
-: pinInit dup @ swap 1 getIx @ rot 0= if clrBit else setBit then ;
+/ add ans mods
+: pinInit dup @ swap 0 getIx @ rot 0= if clrBit else setBit then ;
 
 / pinVAR TOS value NOS
-: setPin dup @ swap 2 getIx @ rot 0= if clrBit else setBit then ;
+: setPin dup @ swap 1 getIx @ rot 0= if clrBit else setBit then ;
 
 ( n -- n )
 / pinVar TOS
-: readPin dup @ swap 3 getIx @ bitMask ;
+: readPin dup @ swap 2 getIx @ @ bitMask ;
+
 
 / ------PIC24FV32K301----------------------
+
+$04e0 constant ansa
+$04e2 constant ansb
+
+( Set all pins for digital use )
+0 ansa !
+0 ansb !
 
 $02c0 constant trisa
 $02c2 constant porta
@@ -59,8 +68,8 @@ $02d0 constant trisc
 $02d2 constant portc
 $02d4 constant latc
 
-create aport trisa , lata , porta ,
-create bport trisb , latb , portb ,
+create aport trisa , lata , porta , ansa ,
+create bport trisb , latb , portb , ansb ,
 create cport trisc , latc , portc ,
 
 create a0 0 , aport ,
@@ -74,7 +83,7 @@ create a6 6 , aport ,
 create b0 0 , bport ,
 create b1 1 , bport ,
 create b2 2 , bport ,
-create b4 5 , bport ,
+create b4 4 , bport ,
 create b7 7 , bport ,
 create b8 8 , bport ,
 create b9 9 , bport ,
@@ -82,22 +91,28 @@ create b12 12 , bport ,
 create b13 13 , bport ,
 create b14 14 , bport ,
 create b15 15 , bport ,
+
+marker -PIC301   
+
 / --------------------------- LCD --------------------
 
-a0 value LCD_RS
-a1 value LCD_EN
-b0 value LCD_D0
-b1 value LCD_D1
-a2 value LCD_D2
-a3 value LCD_D3
-b4 value LCD_D4
-a4 value LCD_D5
-b8 value LCD_D6
-b9 value LCD_D7
 
-100 value togDel
-8 value mode
+a0 constant LCD_RS
+a1 constant LCD_EN
+b0 constant LCD_D0
+b1 constant LCD_D1
+a2 constant LCD_D2
+a3 constant LCD_D3
+b4 constant LCD_D4
+a4 constant LCD_D5
+b8 constant LCD_D6
+b9 constant LCD_D7
 
+100 constant togDel
+8 constant mode
+
+/ change this so uses lcdArr
+: lcdInit
 0 LCD_RS pinInit
 0 LCD_EN pinInit
 0 LCD_D0 pinInit
@@ -108,27 +123,33 @@ b9 value LCD_D7
 0 LCD_D5 pinInit
 0 LCD_D6 pinInit
 0 LCD_D7 pinInit
+;
 
 : lcdArr create 
-LCD_D0 , LCD_D1 , LCD_D2 , LCD_D3 ,
 8 mode = if
+    LCD_D0 , LCD_D1 , LCD_D2 , LCD_D3 ,
+then
 LCD_D4 , LCD_D5 , LCD_D6 , LCD_D7 , 
-then ;
+;
+
+lcdArr lcdPin
 
 ( -- )
 / toggles the LCD enable pin with a dealy of togDel ms
-: lcdEN 1 LCD_EN setBit togDel ms 0 LCD_EN setBit togDel ms;
+: lcdEN 1 LCD_EN setPin togDel ms 0 LCD_EN setPin togDel ms ;
 
 ( n -- )
 / sets the RS bit to the value on TOS
-: lcdRS LCD_RS setBit ;
+: lcdRS LCD_RS setPin ;
 
 ( c -- )
-: lcdLoad 8 for 
-    7 r@ - swap bitMask
-    lcdArr 7 r@ - cells + @
+/ add mode if
+: lcdLoad mode for 
+    dup
+    mode 1 - r@ - tuck swap bitMask swap
+    lcdPin swap cells + @
     setPin
-    next ;
+    next drop ;
 
 ( c -- )
 : lcdChar 1 lcdRs lcdLoad lcdEn ;
