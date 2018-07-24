@@ -1,0 +1,35 @@
+b15 constant SPI_SS
+b14 constant SPI_DI
+b13 constant SPI_DO
+b12 constant SPI_SCK
+
+constant IFS0 ( if interrupts )
+constant IEC0 ( if interrupts )
+constant IPC2 ( if interrupts )
+
+constant SPI1CON1
+constant SPI1CON2
+constant SPI1STAT
+constant SPI1BUF
+
+8 constant SPI_DWIDTH
+constant SPI_MODE (1 for master 0 for slave)
+
+: spiInit
+create SPI_BUS_1 SPI_SS , SPI_DI , SPI_DO , SPI_SCK ,
+0 SPI1CON1 !
+SPI_DWDITH 16 = if
+    10 SPI1CON1 setBit
+then
+SPI_MODE 1 = if
+    5 SPI1CON1 setBit
+then
+( look into prescalers and frame syncing )
+0 SPI1CON2 !
+
+6 SPI1STAT cltBit ( clear SPIROV bit )
+15 SPI1STAT setBit ( set SPI1 enable flag )
+ ( add extra slave stuff !!!!!!)
+
+    
+
