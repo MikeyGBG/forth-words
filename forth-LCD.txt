@@ -1,0 +1,102 @@
+marker LCD-start
+
+a0 constant LCD_RS
+a1 constant LCD_EN
+b0 constant LCD_D0
+b1 constant LCD_D1
+a2 constant LCD_D2
+a3 constant LCD_D3
+b13 constant LCD_D4
+b12 constant LCD_D5
+b8 constant LCD_D6
+b9 constant LCD_D7
+
+100 constant togDel
+50 constant intDel
+8 constant mode
+
+( change this so uses lcdArr )
+: lcdSetup
+1 LCD_EN setPin
+0 LCD_RS pinInit
+0 LCD_EN pinInit
+0 LCD_D0 pinInit
+0 LCD_D1 pinInit
+0 LCD_D2 pinInit
+0 LCD_D3 pinInit
+0 LCD_D4 pinInit
+0 LCD_D5 pinInit
+0 LCD_D6 pinInit
+0 LCD_D7 pinInit
+;
+
+lcdSetup
+
+: lcdArr create 
+8 mode = if
+    LCD_D0 , LCD_D1 , LCD_D2 , LCD_D3 ,
+then
+LCD_D4 , LCD_D5 , LCD_D6 , LCD_D7 , 
+;
+
+lcdArr lcdPin
+
+( -- )
+( toggles the LCD enable pin with a dealy of togDel ms )
+: lcdEn togDel ms 0 LCD_EN setPin togDel ms 1 LCD_EN setPin ;
+
+( n -- )
+( sets the RS bit to the value on TOS )
+: lcdRs LCD_RS setPin ;
+
+( c -- )
+( need to change for 4 bit mode )
+: lcdLoad mode for 
+    dup
+    mode 1 - r@ - tuck swap bitMask swap
+    lcdPin swap cells + @
+    setPin
+    next drop ;
+
+: lcdSet
+mode 4 = if
+dup $0f and lcdLoad lcdEn
+intDel ms
+$f0  4 rshift and
+then lcdLoad lcdEn ;
+
+: lcdSend 0 lcdRs lcdSet intDel ms ;
+
+: lcdWrite 1 lcdRs lcdSet intDel ms ;
+
+: lcdHome 2 lcdSend ;
+
+: lcdClear 1 lcdSend ;
+
+: lcdInit 0 lcdRs
+mode 4 = if 3 else 48 then 
+3 for
+dup lcdLoad lcdEn
+intDel ms 
+next drop
+mode 4 = if
+    $20 lcdSend
+else
+    $30 lcdSend
+then
+$06 lcdSend
+$0f lcdSend 
+lcdHome
+lcdClear  ;
+
+lcdInit
+
+: printHello
+[char] H lcdWrite
+[char] e lcdWrite
+[char] l lcdWrite
+[char] l lcdWrite
+[char] o lcdWrite
+[char] ! lcdWrite ;
+
+printHello

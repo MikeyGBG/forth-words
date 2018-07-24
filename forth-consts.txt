@@ -1,0 +1,58 @@
+
+
+: boardInit
+
+( Set all pins for digital use )
+0 ansa !
+0 ansb !
+
+trisa aport !
+lata aport 1 cells + !
+porta aport 2 cells + !
+ansa aport 3 cells + !
+
+trisb bport !
+latb bport 1 cells + !
+portb bport 2 cells + !
+ansb bport 3 cells + !
+
+0 a0 !
+aport a0 1 cells + !
+1 a1 !
+aport a1 1 cells + !
+2 a2 !
+aport a2 1 cells + !
+3 a3 !
+aport a3 1 cells + !
+4 a4 !
+aport a4 1 cells + !
+5 a5 !
+aport a5 1 cells + !
+6 a6 !
+aport a6 1 cells + !
+
+0 b0 !
+bport b0 1 cells + !
+1 b1 !
+bport b1 1 cells + !
+2 b2 !
+bport b2 1 cells + !
+4 b4 !
+bport b4 1 cells + !
+7 b7 !
+bport b7 1 cells + !
+8 b8 !
+bport b8 1 cells + !
+9 b9 !
+bport b9 1 cells + !
+12 b12 !
+bport b12 1 cells + !
+13 b13 !
+bport b13 1 cells + !
+14 b14 !
+bport b14 1 cells + !
+15 b15 !
+bport b15 1 cells + !
+;
+
+boardInit
