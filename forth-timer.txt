@@ -1,0 +1,2 @@
+( cant use timer 1 or 3 as used by ff core for PIC24 )
+
