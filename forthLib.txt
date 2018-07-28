@@ -1,36 +1,33 @@
 ( n -- n)
-/Gets the decimal representation from a bitPos
+( Gets the decimal representation from a bitPos )
 : getBNum 1 swap dup 0= if drop else lshift then ;
 
 ( uu -- u)
-/ bitMask takes a value and a bit position and returns the value at the bit
-/ bitPos is NOS
+( bitMask takes a value and a bit position and returns the value at the bit )
+( bitPos is NOS )
 : bitMask swap getBNum and 0= if 0 else 1 then ;
 
 ( uu -- )
-/ expects TOS to be reg Addr and NOS to be the bitPos
+( expects TOS to be reg Addr and NOS to be the bitPos)
 : setBit tuck @ swap getBNum or swap ! ;
 
 ( uu -- )
-/see setBit
+( see setBit )
 : clrBit tuck @ swap getBNum invert and swap ! ;
 
-( -- )
-/ pinVar used to store a bitPos and everything portVar stores
-: pinVar create 4 cells allot ;
 
 : getIx swap 1 cells + @ swap cells + ;
 
 ( un -- )
-/ Initializes a pinvar to input or output expects a pinvar TOS and DDR NOS
-/ add ans mods
+( Initializes a pinvar to input or output expects a pinvar TOS and DDR NOS )
+( add ans mods )
 : pinInit dup @ swap 0 getIx @ rot 0= if clrBit else setBit then ;
 
-/ pinVAR TOS value NOS
+( pinVAR TOS value NOS )
 : setPin dup @ swap 1 getIx @ rot 0= if clrBit else setBit then ;
 
 ( n -- n )
-/ pinVar TOS
+( pinVar TOS )
 : readPin dup @ swap 2 getIx @ @ bitMask ;
 
 

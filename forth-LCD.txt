@@ -2,10 +2,10 @@ marker LCD-start
 
 a0 constant LCD_RS
 a1 constant LCD_EN
-b0 constant LCD_D0
-b1 constant LCD_D1
-a2 constant LCD_D2
-a3 constant LCD_D3
+0 constant LCD_D0 
+0 constant LCD_D1 
+0 constant LCD_D2 
+0 constant LCD_D3 
 b13 constant LCD_D4
 b12 constant LCD_D5
 b8 constant LCD_D6
@@ -13,10 +13,28 @@ b9 constant LCD_D7
 
 100 constant togDel
 50 constant intDel
-8 constant mode
+4 constant mode
+
+
+: lcdArr create 
+LCD_D0 , LCD_D1 , LCD_D2 , LCD_D3 ,
+LCD_D4 , LCD_D5 , LCD_D6 , LCD_D7 , 
+;
+
+lcdArr lcdPin
+boardInit
 
 ( change this so uses lcdArr )
 : lcdSetup
+LCD_D0 lcdPin !
+LCD_D1 lcdPin 1 cells + !
+LCD_D2 lcdPin 2 cells + !
+LCD_D3 lcdPin 3 cells + !
+LCD_D4 lcdPin 4 cells + !
+LCD_D5 lcdPin 5 cells + !
+LCD_D6 lcdPin 6 cells + !
+LCD_D7 lcdPin 7 cells + !
+
 1 LCD_EN setPin
 0 LCD_RS pinInit
 0 LCD_EN pinInit
@@ -32,14 +50,7 @@ b9 constant LCD_D7
 
 lcdSetup
 
-: lcdArr create 
-8 mode = if
-    LCD_D0 , LCD_D1 , LCD_D2 , LCD_D3 ,
-then
-LCD_D4 , LCD_D5 , LCD_D6 , LCD_D7 , 
-;
-
-lcdArr lcdPin
+marker LCD-setup
 
 ( -- )
 ( toggles the LCD enable pin with a dealy of togDel ms )
@@ -50,20 +61,30 @@ lcdArr lcdPin
 : lcdRs LCD_RS setPin ;
 
 ( c -- )
-( need to change for 4 bit mode )
-: lcdLoad mode for 
+( need to make better)
+: lcdLoad
+mode for 
     dup
-    mode 1 - r@ - tuck swap bitMask swap
-    lcdPin swap cells + @
+    mode 1 - r@ - tuck
+    swap bitMask swap
+    lcdPin swap 
+    mode 4 = if
+        4 +
+    then
+    cells + @
     setPin
-    next drop ;
+next
+drop ;
 
 : lcdSet
 mode 4 = if
-dup $0f and lcdLoad lcdEn
+dup $f0 and 4 rshift lcdLoad lcdEn
 intDel ms
-$f0  4 rshift and
-then lcdLoad lcdEn ;
+$0f and
+then 
+lcdLoad lcdEn ;
+
+marker LCD-set
 
 : lcdSend 0 lcdRs lcdSet intDel ms ;
 
@@ -73,12 +94,16 @@ then lcdLoad lcdEn ;
 
 : lcdClear 1 lcdSend ;
 
-: lcdInit 0 lcdRs
-mode 4 = if 3 else 48 then 
-3 for
-dup lcdLoad lcdEn
-intDel ms 
-next drop
+: lcdStateReset 0 lcdRs
+mode 4 = if $3 else $30 then
+3 for 
+    dup lcdLoad lcdEn
+    intDel ms
+next
+drop ;
+
+: lcdInit
+lcdStateReset
 mode 4 = if
     $20 lcdSend
 else
@@ -89,7 +114,6 @@ $0f lcdSend
 lcdHome
 lcdClear  ;
 
-lcdInit
 
 : printHello
 [char] H lcdWrite
@@ -98,5 +122,3 @@ lcdInit
 [char] l lcdWrite
 [char] o lcdWrite
 [char] ! lcdWrite ;
-
-printHello

@@ -1,35 +1,88 @@
+marker SPI-start
+
 b15 constant SPI_SS
 b14 constant SPI_DI
 b13 constant SPI_DO
 b12 constant SPI_SCK
 
-constant IFS0 ( if interrupts )
-constant IEC0 ( if interrupts )
-constant IPC2 ( if interrupts )
+$0242 constant SPI1CON1
+$0244 constant SPI1CON2
+$0240 constant SPI1STAT
+$0248 constant SPI1BUF
 
-constant SPI1CON1
-constant SPI1CON2
-constant SPI1STAT
-constant SPI1BUF
-
+( SPI DATA width, 8 or 16 )
 8 constant SPI_DWIDTH
-constant SPI_MODE (1 for master 0 for slave)
+
+( 1 for master 0 for slave)
+1 constant SPI_MODE 
+
+( Should use num of SPI as values an iterate through array to init )
+create SPI_BUS_1 SPI_SS , SPI_DI , SPI_DO , SPI_SCK ,
+
+: spiEnSet
+0= if
+    15 SPI1STAT clrBit
+else
+    15 SPI1STAT setBit
+then ;
+
+: spiPinInit
+1 SPI_DI pinInit
+0 SPI_DO pinInit
+SPI_MODE 0=
+if
+    1 SPI_SS pinInit
+    1 SPI_SCK pinInit
+else
+    0 SPI_SS pinInit
+    0 SPI_SCK pinInit
+then ;
+
 
 : spiInit
-create SPI_BUS_1 SPI_SS , SPI_DI , SPI_DO , SPI_SCK ,
 0 SPI1CON1 !
-SPI_DWDITH 16 = if
+
+SPI_DWIDTH 16 = if
     10 SPI1CON1 setBit
 then
 SPI_MODE 1 = if
     5 SPI1CON1 setBit
 then
-( look into prescalers and frame syncing )
-0 SPI1CON2 !
 
-6 SPI1STAT cltBit ( clear SPIROV bit )
-15 SPI1STAT setBit ( set SPI1 enable flag )
- ( add extra slave stuff !!!!!!)
+0 SPI1CON2 !
+6 SPI1STAT clrBit 
+1 spiEnSet
+ ;
+
+ marker SPI-SEND
+
+( check for write collision and wait for compltion)
+ : spiSend
+ 7 SPI1STAT @ bitMask 
+ begin 1 = 
+ while
+     7 SPI1STAT @ bitMask  
+repeat
+     SPI1BUF !
+1 SPI1STAT @ bitMask
+begin 0=
+while 
+    1 SPI1STAT @ bitMask
+repeat
+;
+
+( -- n)
+: spiRecv
+0 SPI1BUF !
+0 SPI1STAT @ bitMask
+begin 0=
+while
+    0 SPI1STAT @ bitMask
+repeat
+SPI1BUF @
+;
+
+
 
     
 
