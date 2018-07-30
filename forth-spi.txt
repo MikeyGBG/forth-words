@@ -1,4 +1,5 @@
 marker SPI-start
+decimal
 
 b15 constant SPI_SS
 b14 constant SPI_DI
@@ -15,6 +16,14 @@ $0248 constant SPI1BUF
 
 ( 1 for master 0 for slave)
 1 constant SPI_MODE 
+
+8 IPC2 10 IEC0 10 IFS0 intStruct SPIINT
+
+: SPIINTPop
+decimal
+8 IPC2 10 IEC0 10 IFS0 SPIINT intPopulate ;
+
+2 constant SPI_P
 
 ( Should use num of SPI as values an iterate through array to init )
 create SPI_BUS_1 SPI_SS , SPI_DI , SPI_DO , SPI_SCK ,
@@ -50,7 +59,8 @@ SPI_MODE 1 = if
 then
 
 0 SPI1CON2 !
-6 SPI1STAT clrBit 
+6 SPI1STAT clrBit
+SPI_P SPIINT intInit
 1 spiEnSet
  ;
 
@@ -82,7 +92,4 @@ repeat
 SPI1BUF @
 ;
 
-
-
-    
-
+marker SPI-curr

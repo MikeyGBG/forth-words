@@ -1,4 +1,38 @@
 
+$04e0 constant ansa
+$04e2 constant ansb
+
+$02c0 constant trisa
+$02c2 constant porta
+$02c4 constant lata
+
+$02c8 constant trisb
+$02ca constant portb
+$02cc constant latb
+ 
+
+create aport trisa , lata , porta , ansa ,
+create bport trisb , latb , portb , ansb ,
+
+create a0 0 , aport ,
+create a1 1 , aport ,
+create a2 2 , aport ,
+create a3 3 , aport ,
+create a4 4 , aport ,
+create a5 5 , aport ,
+create a6 6 , aport ,
+
+create b0 0 , bport ,
+create b1 1 , bport ,
+create b2 2 , bport ,
+create b4 4 , bport ,
+create b7 7 , bport ,
+create b8 8 , bport ,
+create b9 9 , bport ,
+create b12 12 , bport ,
+create b13 13 , bport ,
+create b14 14 , bport ,
+create b15 15 , bport ,
 
 : boardInit
 

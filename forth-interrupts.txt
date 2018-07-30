@@ -1,0 +1,85 @@
+marker INT-start
+decimal
+
+$0080 constant INTCON1
+$0082 constant INTCON2
+
+$0084 constant IFS0
+$0086 constant IFS1
+$0088 constant IFS2
+$008a constant IFS3
+$008c constant IFS4
+$008e constant IFS5
+
+$0094 constant IEC0
+$0096 constant IEC1
+$0098 constant IEC2
+$009a constant IEC3
+$009c constant IEC4
+$009e constant IEC5
+
+$00a4 constant IPC0
+$00a6 constant IPC1
+$00a8 constant IPC2
+$00aa constant IPC3
+$00ac constant IPC4
+$00ae constant IPC5
+$00b0 constant IPC6
+$00b2 constant IPC7
+$00b4 constant IPC8
+$00b6 constant IPC9
+$00bc constant IPC12
+$00c2 constant IPC15
+$00c4 constant IPC16
+$00c8 constant IPC18
+$00ca constant IPC19
+$00cc constant IPC20
+
+$00e0 constant INTTREG
+
+( number of interrupt priroity bits )
+3 constant IPBITS
+
+( -- )
+( creates an array containing an IFS REG IFS bitNum )
+( IEC reg and bitNum and the IPC reg and lower bitNum )
+: intStruct create  ,  ,  ,  ,  ,  , ;
+
+( nnnnnn -- )
+: intPopulate
+tuck !
+tuck 1 cells + !
+tuck 2 cells + !
+tuck 3 cells + !
+tuck 4 cells + !
+5 cells + ! 
+;
+
+
+
+( expects an intStruct addr as TOS )
+: clrIFS dup 1 cells + @ swap @ clrBit ;
+
+( expects an intStruct addr as TOS )
+: setIEC dup 3 cells + @ swap 2 cells + @ setBit ;
+
+( expects an intStruct addr as TOS and value as NOS )
+: setIPC 
+dup 5 cells + @ swap 4 cells + @
+to workReg
+to workBit
+to workVar
+IPBITS for
+    IPBITS 1 - r@ - dup workVar bitMask
+    0= if 
+        workBit + workReg clrBit
+    else
+        workBit + workReg setBit
+    then
+next 
+clrWorkVar ;
+
+( nn -- )
+( expects a priotiy as NOS and an intStruct addr as TOS )
+: intInit
+tuck setIPC dup clrIFS setIEC ;
