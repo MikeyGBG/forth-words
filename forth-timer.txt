@@ -18,14 +18,15 @@ $011a constant PR4
 $011c constant PR5
 ( TMR5HLD reg? )
 
-32 constant TIMER_MODE
+16 constant TIMER_MODE
 5 constant TIM2_P
 6 constant TIM4_P
 6 constant TIM5_P
 
-variable tim2Ex
+ram variable tim2Ex
 
 12 IPC1 7 IEC0 7 IFS0 intStruct tim2Int
+12 IPC6 11 IEC1 11 IFS1 intStruct tim4Int
 
 : timerIntStruct
 IFS0 tim2Int !
@@ -42,6 +43,7 @@ IPC1 tim2Int 4 cells + !
 : timerInit
 decimal
 12 IPC1 7 IEC0 7 IFS0 tim2Int intPopulate
+12 IPC6 11 IEC1 11 IFS1 tim4Int intPopulate
 0 T4CON !
 0 T5CON !
 0 T2CON !
@@ -66,16 +68,17 @@ then
 ( n -- )
 ( expects period in ms )
 : tim2Set
-1000 640 */ PR2 !
-tim2Int dup clrIFS setIEC
-15 T2CON setBit
+#1000 #640 */ PR2 !
+#15 T2CON setBit
 ;
+
+: tim2Stop
+#15 T2CON clrBit ;
 
 ( n -- )
 ( expects period in us )
 : tim4Set
-1000 250 */ PR4 !
-tim2Int intInit
-15 T4CON setBit
+#1000 #250 */ PR4 !
+#15 T4CON setBit
 ;
 

@@ -60,8 +60,12 @@ tuck 4 cells + !
 ( expects an intStruct addr as TOS )
 : clrIFS dup 1 cells + @ swap @ clrBit ;
 
+: setIFS dup 1 cells + @ swap @ setBit ;
+
 ( expects an intStruct addr as TOS )
 : setIEC dup 3 cells + @ swap 2 cells + @ setBit ;
+
+: clrIEC dup 3 cells + @ swap 2 cells + @ clrBit ;
 
 ( expects an intStruct addr as TOS and value as NOS )
 : setIPC 
@@ -83,3 +87,6 @@ clrWorkVar ;
 ( expects a priotiy as NOS and an intStruct addr as TOS )
 : intInit
 tuck setIPC dup clrIFS setIEC ;
+
+: intUnInit
+4 over setIPC dup setIFS clrIEC ;

@@ -1,0 +1,60 @@
+marker TIMER_INT
+decimal
+
+$04e0 constant ansa
+$04e2 constant ansb
+$02c0 constant trisa
+$02c8 constant trisb
+$02c4 constant lata
+$02cc constant latb
+
+$0094 constant IEC0
+$0096 constant IEC1
+$0086 constant IFS1
+$0084 constant IFS0
+
+$011a constant PR4
+$011e constant T4CON
+
+ram variable tim4Ex
+IEC1 #11 bclr ivt
+
+: tim4-irq  [i
+ di
+ IFS1 11 bclr          \ clr tim4 IFS1
+\ 0 IFS1 !
+\ 0 IFS0 !
+ 1 lata @ xor lata !   \ Toggle A0 pin
+\ tim4Ex @ 1 + tim4Ex ! \ increment variable
+ ei
+ i] 
+;i
+
+
+: T4InterruptInit
+di
+
+\ initialize A0 pin
+ansa 0 bclr
+ansb 0 bclr
+trisa 0 bclr
+trisb 0 bclr
+0 latb !
+
+['] tim4-irq #35 int!
+
+\ initialize timer
+65535 PR4 !
+
+\ initialize interrupts
+aivt
+IEC1 #11 bset 
+
+\ start TImer
+$8030 T4CON !
+
+1 latb !
+ei
+ ;
+
+marker TIMER-curr
