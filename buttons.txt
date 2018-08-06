@@ -1,0 +1,103 @@
+marker but-start
+b15 constant row0
+b14 constant row1
+b13 constant row2
+b8 constant col0
+0 constant col1
+0 constant col2
+
+\ need to make waay mroe modular
+\ button array for row and col
+\ polarity checks for setting
+\ 1 for active high
+0 constant butPol 
+0 value rowVal
+0 value colVal
+
+3 constant colCount
+3 constant rowCount
+
+0 value colVar
+0 value rowVar
+
+: butInit
+1 row0 pinInit
+1 row1 pinInit
+1 row2 pinInit
+0 col0 pinInit
+0 col1 pinInit
+0 col2 pinInit
+;
+
+: butP
+butPol 0= if
+    xor
+else
+    and
+then ;
+
+( nn -- )
+\ takes col NOS row TOS
+: butArr create colCount rowCount * 2 * cells allot 
+does> rot rot 2 * swap rowCount * 2 * + cells + ;
+
+butArr butAr
+
+: rowRead 
+row0 readPin to rowVal
+row1 readPin 1 lshift rowVal or to rowVal
+row2 readPin 2 lshift rowVal or to rowVal
+;
+
+( -- )
+: colWrite
+colVal
+dup 4 and col2 setPin
+dup 2 and col1 setPin
+1 and col0 setPin
+;
+
+: convNum
+dup 4 = if
+    drop 3
+then 
+1 - ;
+
+
+: butRead
+colCount for
+    1 colCount 1 - r@ - lshift $7 xor to colVal
+    colWrite
+    1 ms
+    rowRead 
+    rowVal 7 xor 0= invert if
+        rowCount for
+            1 rowCount 1 - r@ - lshift to rowVar
+            rowVar rowVal and 0= if
+                 1 colVal $7 xor convNum rowVar convNum butAr !
+            then
+        next
+    then
+next ;
+
+: butArClr
+0 0 butAr colCount rowCount * 2 * cells $0 fill ;
+
+( nn -- )
+\ expects an exec token as nos and butArr element as TOS
+\ sotres the exec token in the butAr
+: butExecStore
+1 cells + ! ;
+
+: butSingleExec
+colCount for
+    colCount 1 - r@ - to colVar
+    rowCount for
+        rowCount 1 - r@ - to rowVar
+        colVar rowVar butAr @ 1 = if
+            colVar rowVar butAr 1 cells + @ execute
+        then
+    next
+next ;
+
+

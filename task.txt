@@ -1,0 +1,22 @@
+marker but-task
+
+$40 $30 $30 $0 task: tBut
+
+: butTask
+\ [ : but0 [char] 0 lcdWrite ; ]
+\ ' but0 0 0 butAr butExecStore
+boardInit
+lcdSetup
+lcdInit
+lcdStateReset $2 lcdLoad lcdEn
+butInit
+begin
+\ butRead butSingleExec butArClr
+pause
+50 ms lcdClear
+pause
+again
+;
+
+: butGo
+['] butTask tBut tinit tBut run ;

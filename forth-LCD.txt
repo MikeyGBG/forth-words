@@ -6,13 +6,13 @@ a1 constant LCD_EN
 0 constant LCD_D1 
 0 constant LCD_D2 
 0 constant LCD_D3 
-b13 constant LCD_D4
-b12 constant LCD_D5
-b8 constant LCD_D6
-b9 constant LCD_D7
+b0 constant LCD_D4
+b1 constant LCD_D5
+a2 constant LCD_D6
+a3 constant LCD_D7
 
-100 constant togDel
-50 constant intDel
+2 constant togDel
+#10 constant intDel
 4 constant mode
 
 
@@ -94,6 +94,8 @@ marker LCD-set
 
 : lcdClear 1 lcdSend ;
 
+: lcdLine2 $c0 lcdSend ;
+
 : lcdStateReset 0 lcdRs
 mode 4 = if $3 else $30 then
 3 for 
@@ -105,7 +107,8 @@ drop ;
 : lcdInit
 lcdStateReset
 mode 4 = if
-    $20 lcdSend
+    $2 lcdLoad lcdEn
+    $28 lcdSend
 else
     $30 lcdSend
 then
