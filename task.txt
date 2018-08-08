@@ -1,22 +1,38 @@
+marker --task
 marker but-task
+decimal
 
-$40 $30 $30 $0 task: tBut
+variable taskCount
+0 taskCount !
 
-: butTask
-\ [ : but0 [char] 0 lcdWrite ; ]
-\ ' but0 0 0 butAr butExecStore
-boardInit
-lcdSetup
-lcdInit
-lcdStateReset $2 lcdLoad lcdEn
-butInit
+$40 $40 $40 $0 task: tButRead
+$40 $40 $40 $0 task: tButExec
+
+: but0 [char] 0 lcdWrite ;
+: but1 [char] 1 lcdWrite ;
+: but2 [char] 2 lcdWrite ;
+
+: tempStore
+['] but0 0 0 butAr butExecStore
+['] but1 0 1 butAr butExecStore
+['] but2 0 2 butAr butExecStore
+;
+
+\ multi-press buttons or debouncing will require 2 tasks
+: butReadTask
 begin
-\ butRead butSingleExec butArClr
-pause
-50 ms lcdClear
-pause
+butRead
+20 ms
 again
 ;
 
+: butExecTask
+begin
+lcdClear
+butSingleExec
+100 ms
+again ;
+
 : butGo
-['] butTask tBut tinit tBut run ;
+['] butReadTask tButRead tinit tButRead run 
+['] butExecTask tButExec tinit tButExec run ;

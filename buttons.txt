@@ -80,8 +80,6 @@ colCount for
     then
 next ;
 
-: butArClr
-0 0 butAr colCount rowCount * 2 * cells $0 fill ;
 
 ( nn -- )
 \ expects an exec token as nos and butArr element as TOS
@@ -95,6 +93,7 @@ colCount for
     rowCount for
         rowCount 1 - r@ - to rowVar
         colVar rowVar butAr @ 1 = if
+            0 colVar rowVar butAr !
             colVar rowVar butAr 1 cells + @ execute
         then
     next
