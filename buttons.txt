@@ -57,10 +57,14 @@ dup 2 and col1 setPin
 1 and col0 setPin
 ;
 
+\ made an untested change here
 : convNum
-dup 4 = if
+dup 8 = if 
+    drop 4
+else dup 4 = if
     drop 3
-then 
+then
+then
 1 - ;
 
 

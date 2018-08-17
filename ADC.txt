@@ -1,0 +1,37 @@
+marker ADC-start
+decimal
+
+$04e2 constant ansb
+$04e0 constant ansa
+
+$0342 constant AD1CON2
+$0344 constant AD1CON3
+$0340 constant AD1CON1
+$0348 constant AD1CHS
+$034e constant AD1CSSH
+$0350 constant AD2CSSL
+$0354 constant AD1CON5
+$0356 constant AD1CHITH
+$0358 constant AD1CHITL
+$0300 constant ADC1BUF0
+
+
+
+\ a0 constant AD1Pin
+
+
+: adcInit
+ansa 0 bset
+$0 AD1CON2 !
+$0 AD1CHS !
+$8070 AD1CON1 !
+;
+
+: adcMeas
+AD1CON1 1 bset
+;
+
+: adcRead
+ADC1BUF0 @ . ;
+
+

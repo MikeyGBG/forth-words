@@ -1,0 +1,20 @@
+decimal
+marker PWM-start
+
+$04e2 constant ansb
+$02c8 constant trisb
+
+$019a constant OC2CON1
+$019c constant OC2CON2
+$019e constant OC2RS
+$01a0 constant OC2R
+$01a2 constant OC2TMR
+
+: pwmInit
+76 OC2R !
+320 OC2RS !
+0 OC2CON1 !
+0 OC2CON2 !
+$1f OC2CON2 !
+#7 #10 lshift #7 or OC2CON1 !
+;
