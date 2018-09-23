@@ -1,10 +1,14 @@
 marker but-start
+
+\ Changed to work with 4 rows and cols need to TEST
 b15 constant row0
 b14 constant row1
 b13 constant row2
+b12 constant row3
 b8 constant col0
 0 constant col1
 0 constant col2
+0 constant col3
 
 \ need to make waay mroe modular
 \ button array for row and col
@@ -14,19 +18,26 @@ b8 constant col0
 0 value rowVal
 0 value colVal
 
-3 constant colCount
-3 constant rowCount
+4 constant colCount
+4 constant rowCount
+
+\ NOT USED IN CODE NEED TO !!!! (4 but no WOKR)
+$f constant colOff
 
 0 value colVar
 0 value rowVar
+
+0 variable update drop
 
 : butInit
 1 row0 pinInit
 1 row1 pinInit
 1 row2 pinInit
+1 row3 pinInit
 0 col0 pinInit
 0 col1 pinInit
 0 col2 pinInit
+0 col3 pinInit
 ;
 
 : butP
@@ -47,11 +58,13 @@ butArr butAr
 row0 readPin to rowVal
 row1 readPin 1 lshift rowVal or to rowVal
 row2 readPin 2 lshift rowVal or to rowVal
+row3 readPin 3 lshift rowVal or to rowVal
 ;
 
 ( -- )
 : colWrite
 colVal
+dup 8 and col3 setPin
 dup 4 and col2 setPin
 dup 2 and col1 setPin
 1 and col0 setPin
@@ -70,15 +83,20 @@ then
 
 : butRead
 colCount for
-    1 colCount 1 - r@ - lshift $7 xor to colVal
+    1 colCount 1 - r@ - lshift $f xor to colVal
     colWrite
     1 ms
     rowRead 
-    rowVal 7 xor 0= invert if
+    rowVal $f xor 0= invert if
         rowCount for
             1 rowCount 1 - r@ - lshift to rowVar
             rowVar rowVal and 0= if
-                 1 colVal $7 xor convNum rowVar convNum butAr !
+                colVal $f xor convNum rowVar convNum butAr dup
+                @ 0= if
+                    1 swap !
+                else
+                    drop
+                then      
             then
         next
     then
@@ -92,13 +110,22 @@ next ;
 1 cells + ! ;
 
 : butSingleExec
+0 update !
 colCount for
     colCount 1 - r@ - to colVar
     rowCount for
         rowCount 1 - r@ - to rowVar
-        colVar rowVar butAr @ 1 = if
-            0 colVar rowVar butAr !
-            colVar rowVar butAr 1 cells + @ execute
+        colVar rowVar butAr dup @ dup 1 = if
+            drop dup
+            2 swap !
+            1 cells + @ execute
+            1 update !
+        else
+            2 = if
+                0 swap !
+            else
+                drop
+            then
         then
     next
 next ;

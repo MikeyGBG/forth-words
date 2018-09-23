@@ -1,21 +1,68 @@
-marker --task
 marker but-task
 decimal
 
 variable taskCount
 0 taskCount !
 
-$40 $40 $40 $0 task: tButRead
-$40 $40 $40 $0 task: tButExec
+$40 $40 $30 $0 task: tButRead
+$40 $40 $80 $0 task: tButExec
+$40 $40 $40 $0 task: tLCD
 
-: but0 [char] 0 lcdWrite ;
-: but1 [char] 1 lcdWrite ;
-: but2 [char] 2 lcdWrite ;
+: butSave UIVarSave ;
+: butRestore UIVarRes ;
+: but0 0 UINumIn ;
+: but1 1 UINumIn ;
+: but2 2 UINumIn ;
+: but3 3 UINumIn ;
+: but4 4 UINumIn ;
+: but5 5 UINumIn ;
+: but6 6 UINumIn ;
+: but7 7 UINumIn ;
+: but8 8 UINumIn ;
+: but9 9 UINumIn ;
+
+: butDown currRow 1 + UI_ROWS mod to currRow ;
+
+: butSelect selected 0= if
+    1 to selected
+    0 thouBuff !
+    0 millBuff !
+else
+    0 to selected
+    UINumSave
+then ;
+
+: butMode
+currScreen 0= if
+    1 to currScreen
+else
+    0 to currScreen
+then ;
+
+: butUp
+currRow 1 - dup 0< if
+    UI_ROWS 1 - to currRow drop
+else
+    to currRow
+then ;
 
 : tempStore
-['] but0 0 0 butAr butExecStore
-['] but1 0 1 butAr butExecStore
-['] but2 0 2 butAr butExecStore
+['] but1 0 0 butAr butExecStore
+['] but4 0 1 butAr butExecStore
+['] but7 0 2 butAr butExecStore
+['] but2 1 0 butAr butExecStore
+['] but5 1 1 butAr butExecStore
+['] but8 1 2 butAr butExecStore
+['] but3 2 0 butAr butExecStore
+['] but6 2 1 butAr butExecStore
+['] but9 2 2 butAr butExecStore
+['] but0 1 3 butAr butExecStore
+['] butRestore 0 3 butAr butExecStore
+['] butSave 2 3 butAr butExecStore
+['] butUp 3 0 butAr butExecStore
+['] butSelect 3 1 butAr butExecStore
+['] butDown 3 2 butAr butExecStore
+['] butMode 3 3 butAr butExecStore
 ;
 
 \ multi-press buttons or debouncing will require 2 tasks
@@ -27,12 +74,33 @@ again
 ;
 
 : butExecTask
+UIPrintScreen
 begin
-lcdClear
 butSingleExec
-100 ms
+\ make update a user variable of this task
+update @ 1 = if
+    UIPrintScreen
+then
+500 ms
 again ;
+
+: lcdTask
+begin
+UIPrintScreen
+200 ms
+again
+;
 
 : butGo
 ['] butReadTask tButRead tinit tButRead run 
 ['] butExecTask tButExec tinit tButExec run ;
+
+: oInit
+boardInit
+lcdSetup
+lcdInit
+butInit
+UIInit
+tempStore
+butGo
+;

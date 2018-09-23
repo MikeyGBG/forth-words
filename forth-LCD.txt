@@ -11,8 +11,8 @@ b1 constant LCD_D5
 a2 constant LCD_D6
 a3 constant LCD_D7
 
-2 constant togDel
-#10 constant intDel
+1 constant togDel 
+#2 constant intDel
 4 constant mode
 
 
@@ -117,11 +117,77 @@ $0f lcdSend
 lcdHome
 lcdClear  ;
 
+\ prints a string created using the s" " syntax
+: lcdPrintS
+for c@+ lcdWrite next
+drop ;
 
-: printHello
-[char] H lcdWrite
-[char] e lcdWrite
-[char] l lcdWrite
-[char] l lcdWrite
-[char] o lcdWrite
-[char] ! lcdWrite ;
+\ prints 15 bit unsigned numbers
+: lcdPrintN
+10000 to workVar
+0 to workBit
+5 for   
+    dup workVar u/ 10 mod dup >digit swap
+    0= if
+        workBit 1 = if
+            lcdWrite
+        else
+            r@ 1 = if
+                lcdWrite
+            else
+                drop
+            then
+        then
+    else
+        lcdWrite 1 to workBit
+    then
+    workVar 10 u/ to workVar
+next drop ;
+
+\ prints 15 bit unsigned numbers
+: lcdPrintNFull
+1000 to workVar
+0 to workBit
+4 for   
+    dup workVar u/ 10 mod >digit
+    lcdWrite
+    workVar 10 u/ to workVar
+next drop ;
+
+: lcdPrintD
+dup 0= if
+    drop lcdPrintN
+else
+    lcdPrintN lcdPrintNFull
+then ;
+
+0 variable thouBuff drop
+0 variable millBuff drop
+
+: addToBuff
+thouBuff @ 1000 < if
+    thouBuff @ 10 * + thouBuff !
+else
+    millBuff @ 1000 < if
+        millBuff @ 10 * thouBuff @ 1000 / + millBuff !
+        thouBuff @ 1000 mod 10 * + thouBuff !
+    else
+        drop
+    then
+then
+;
+
+: clrBuff
+0 thouBuff !
+0 millBuff !
+;
+
+: cBuff
+millBuff @ 10000 um* thouBuff @ m+ ;
+
+
+
+: lcdPrintBuff 
+thouBuff @ millBuff @ lcdPrintD ;
+
+

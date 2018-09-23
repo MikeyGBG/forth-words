@@ -1,0 +1,26 @@
+marker uart-start
+decimal
+
+$0230 constant U2MODE
+$0232 constant U2STA
+$0234 constant U2TXREG
+$0236 constant U2RXREG
+$0238 constant U2BRG
+
+b0 constant U2TX
+b1 constant U2RX
+
+\ baud rate in 100s of bauds
+384 constant BAUD
+
+: uartInit
+0 U2TX setPin
+0 U2RX setPin
+0 U2MODE !
+$4000 U2STA !
+[ Fcy 16 BAUD * 10 u/ u/ ] literal 1 - U2BRG !
+
+\ enable interrupt
+15 U2MODE setBit
+10 U2STA setBit
+;

@@ -1,0 +1,136 @@
+
+marker I2C_start
+
+$0200 constant I2C1RCV
+$0202 constant I2C1TRN
+$0204 constant I2C1BRG
+$0206 constant I2C1CON
+$0208 constant I2C1STAT
+$020a constant I2C1ADD
+$02c8 constant trisb
+$02ca constant portb
+$02cc constant latb
+$02ce constant odcb
+$04e2 constant ansb
+
+$0086 constant ifs1
+
+: i2cinit
+$8000 I2C1CON !
+[ Fcy #100 / 1- ] literal I2C1BRG c!
+%1100000000 trisb mset 
+%1100000000 odcb mset
+%1100000000 ansb mclr
+;
+
+
+: i2c.wait ( -- ) \ Wait for interrupt flag and clear it
+ begin $2 ifs1 mtst until
+ $2 ifs1 mclr
+;
+
+: i2c.idle? ( -- f )
+%00011111 I2C1CON mtst \ ACKEN RCEN REN RSEN SEN
+%100 I2C1STAT mtst \ R/^W 
+or 0=
+;
+
+: i2c.start ( -- ) \ Send start condition
+begin i2c.idle? until
+\ mSSP1IF ifs1 mclr
+$1 I2C1CON mset
+i2c.wait
+;
+
+: i2c.rsen ( -- ) \ Send repeated start condition
+  \ mSSP1IF ifs1 mclr
+  $2 I2C1CON mset
+  i2c.wait
+;
+
+: i2c.stop ( -- ) \ Send stop condition
+  \ mSSP1IF ifs1 mclr
+  $4 I2C1CON mset
+  i2c.wait
+;
+
+: i2c.buf.full? ( -- f ) 
+  $1 I2C1STAT mtst
+  $4000 I2C1STAT mtst
+  or
+;
+
+\ Write one byte to bus, leaves ACK bit.
+\ A value of 0 indicates ACK was received from slave device.
+: i2c.c! ( c -- f )
+  begin i2c.buf.full? 0= until
+  I2C1TRN c!
+  begin i2c.buf.full? 0= until
+  begin i2c.idle? until
+  I2C1STAT @ $8000 and
+;
+
+\ Send ack bit.
+: i2c.ack.seq ( -- )
+  $10 I2C1CON mset
+  begin $10 I2C1CON mtst 0= until
+;
+
+\ Read one byte and ack for another.
+: i2c.c@.ack ( -- c )
+  $8 I2C1CON mset
+  begin i2c.buf.full? until
+  $20 I2C1CON mclr i2c.ack.seq \ ack
+  I2C1RCV c@
+;
+
+ \ Read one last byte.
+: i2c.c@.nack ( -- c ) 
+  $8 I2C1CON mset
+  begin i2c.buf.full? until
+  $20 I2C1CON mset i2c.ack.seq \ nack
+  I2C1RCV c@
+  ;
+
+\ Address slave for writing, leaves true if slave ready.
+: i2c.addr.write ( 7-bit-addr -- f )
+  1 lshift 1 invert and \ Build full byte with write-bit as 0
+  i2c.start i2c.c! 0=
+;
+
+\ Address slave for reading, leaves true if slave ready.
+: i2c.addr.read ( 7-bit-addr -- f )
+  1 lshift 1 or \ Build full byte with read-bit as 1
+  i2c.start i2c.c! 0=
+;
+
+\ Detect presence of device, 
+\ leaving true if device present, 0 otherwise.
+\ The 16KM202 must actually fetch a byte if the slave has acknowledged. 
+: i2c.ping? ( 7-bit-addr -- f )
+  i2c.addr.read if i2c.c@.nack drop true else false then
+;
+
+: i2c.full
+i2c.addr.write
+i2c.c!
+i2c.c!
+i2c.stop
+i2c.wait ;
+
+: i2c.scan
+128 for
+    r@ dup i2c.ping?
+    if
+        .
+    else
+        drop
+    then
+    i2c.wait
+    i2c.stop
+next
+;
+
+: i2c.reset
+$2 ifs1 mclr
+0 I2C1STAT ! ;
