@@ -7,20 +7,116 @@ $0234 constant U2TXREG
 $0236 constant U2RXREG
 $0238 constant U2BRG
 
+$0094 constant IEC0
+$0096 constant IEC1
+$0086 constant IFS1
+$0084 constant IFS0
+
 b0 constant U2TX
 b1 constant U2RX
+
+0 value txDone
+0 value rxExp
+0 value curPos
+
+\ untest and interrupts
+: uBuf create 60 allot
+does> + ;
 
 \ baud rate in 100s of bauds
 384 constant BAUD
 
 : uartInit
 0 U2TX setPin
-0 U2RX setPin
+1 U2RX setPin
 0 U2MODE !
-$4000 U2STA !
 [ Fcy 16 BAUD * 10 u/ u/ ] literal 1 - U2BRG !
 
-\ enable interrupt
-15 U2MODE setBit
-10 U2STA setBit
+\ enable Tx operation with UART and RX interrupts
+$0400 U2STA !
+
+#15 U2MODE setBit
+
+U2RXREG @ drop
+
+[ uBuf uartRxBuffer ] drop
 ;
+
+
+\ Add transmit buf overflow check
+: uartSend
+begin
+    1 8 lshift U2STA @ and 0= invert dup \ loop until this is 1
+    if
+    else
+        1 ms
+    then
+until
+U2TXREG ! ;
+
+\ Add recieve buffer check
+: uartRead 
+rxExp 1 = if
+    begin
+        1 U2STA @ and 1 = \ loop until 1
+        1 ms
+    until
+    U2RXREG @ curPos uartRxBuffer c!
+    curPos 1 + to curPos
+then ;
+\\\\\\\\\\ TODO UART TASK FROM HERE DOWN ||||||||||||||||/////////
+
+: uNums create 5 allot
+does> + ;
+
+uNums uartTxBuf
+0 value txBufPos
+
+
+
+: uartPrintS
+for
+c@+ uartSend
+next
+drop ;
+
+
+: txBufStore
+1 txBufPos + to txBufPos
+txBufPos 5 < if
+    txBufPos 1 - uartTxBuf c!
+else
+    4 to txBufPos
+    drop
+then
+;
+
+: txBufClr
+5 for
+    0 r@ uartTxBuf c!
+next
+;
+
+
+\ TODO: SHOULD BLOCK UNTIL RX FIN
+: uartEndTrans
+#13 uartSend
+1 to rxExp
+txBufClr ;
+
+: uartBufOut
+txBufPos for
+    txBufPos 1 - r@ - uartTxBuf c@ >digit uartSend
+next
+;
+
+: uartPrintSN
+uartPrintS
+uartBufOut
+uartEndTrans
+;
+
+\ TODO
+: rxExtractNum $f ;
+
+

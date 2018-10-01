@@ -1,0 +1,48 @@
+marker UI_UART
+
+\ REWRITE AS UART TASK
+
+0 value uartRegNum
+
+: readReg
+[char] r uartSend
+$20 uartSend
+uartRegNum >digit uartSend
+uartEndTrans
+ ;
+
+: setReg
+[char] s uartSend
+$20 uartSend
+uartRegNum >digit uartSend
+$20 uartSend
+uartBufOut
+uartEndTrans
+;
+
+: armDevice
+[char] a uartSend
+uartEndTrans ;
+
+: convChan
+[char] c uartSend
+$20 uartSend
+uartBufOut
+uartEndTrans ;
+
+: manArm
+[char] m uartSend
+uartEndTrans ;
+
+: digOut
+[char] d uartSend
+uartEndTrans ;
+
+: regRestore
+[char] r uartSend
+uartEndTrans ;
+
+: regSave
+[char] s uartSend
+uartEndTrans ;
+

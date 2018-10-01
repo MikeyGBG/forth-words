@@ -6,15 +6,16 @@ a1 constant LCD_EN
 0 constant LCD_D1 
 0 constant LCD_D2 
 0 constant LCD_D3 
-b0 constant LCD_D4
-b1 constant LCD_D5
-a2 constant LCD_D6
-a3 constant LCD_D7
+b3 constant LCD_D4
+b4 constant LCD_D5
+a4 constant LCD_D6
+b5 constant LCD_D7
 
 1 constant togDel 
 #2 constant intDel
 4 constant mode
 
+: >digit #48 + ;
 
 : lcdArr create 
 LCD_D0 , LCD_D1 , LCD_D2 , LCD_D3 ,
@@ -123,6 +124,7 @@ for c@+ lcdWrite next
 drop ;
 
 \ prints 15 bit unsigned numbers
+\ omits insignifigant zeros
 : lcdPrintN
 10000 to workVar
 0 to workBit
@@ -144,7 +146,7 @@ drop ;
     workVar 10 u/ to workVar
 next drop ;
 
-\ prints 15 bit unsigned numbers
+\ prints 15 bit unsigned numbers no 0 omissions
 : lcdPrintNFull
 1000 to workVar
 0 to workBit

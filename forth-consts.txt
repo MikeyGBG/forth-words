@@ -21,14 +21,20 @@ create a3 3 , aport ,
 create a4 4 , aport ,
 create a5 5 , aport ,
 create a6 6 , aport ,
+create a7 7 , aport ,
 
 create b0 0 , bport ,
 create b1 1 , bport ,
 create b2 2 , bport ,
+create b3 3 , bport ,
 create b4 4 , bport ,
+create b5 5 , bport ,
+create b6 6 , bport ,
 create b7 7 , bport ,
 create b8 8 , bport ,
 create b9 9 , bport ,
+create b10 10 , bport ,
+create b11 11 , bport ,
 create b12 12 , bport ,
 create b13 13 , bport ,
 create b14 14 , bport ,
@@ -64,6 +70,8 @@ aport a4 1 cells + !
 aport a5 1 cells + !
 6 a6 !
 aport a6 1 cells + !
+7 a7 !
+aport a7 1 cells + !
 
 0 b0 !
 bport b0 1 cells + !
@@ -71,14 +79,24 @@ bport b0 1 cells + !
 bport b1 1 cells + !
 2 b2 !
 bport b2 1 cells + !
+3 b3 !
+bport b3 1 cells + !
 4 b4 !
 bport b4 1 cells + !
+5 b5 !
+bport b5 1 cells + !
+6 b6 !
+bport b6 1 cells + !
 7 b7 !
 bport b7 1 cells + !
 8 b8 !
 bport b8 1 cells + !
 9 b9 !
 bport b9 1 cells + !
+10 b10 !
+bport b10 1 cells + !
+11 b11 !
+bport b11 1 cells + !
 12 b12 !
 bport b12 1 cells + !
 13 b13 !

@@ -9,6 +9,7 @@ decimal
 0 value currRow        \ curr row
 0 value selected       \ if row is selected
 
+\ USER VARIABLES ACCESSIBLE TO UART TASK
 0 variable trigLevL drop
 0 variable delay1L drop
 0 variable delay2L drop
@@ -117,6 +118,22 @@ UIPrintLine
 : lcdNextLine
 $c0 lcdSend ;
 
+\ \ ||||||||||-- UART TASK --|||||||| | | //
+: uartReadRegs
+4 for
+    4 r@ - to uartRegNum
+    readReg
+    rxExtractNum 0 uartRegNum uiArr 1 cells + !
+next
+;
+
+: uartSaveReg
+currRow to uartRegNum
+setReg
+;
+
+\ \ -_______________END UART TASK ______//
+
 
 : UIPrintOptions
  \ print rows before current
@@ -153,6 +170,7 @@ then
 ;
 
 : UIPrintScreen
+uartReadRegs
 currRow LCD_ROWS mod to UIReg
 currRow UI_ROWS < if
     lcdClear lcdHome
@@ -167,9 +185,11 @@ then
 
 : UINumIn 
 selected 1 = if
-    addToBuff
+    dup addToBuff
+    txBufStore
 else
     clrBuff
+    txBufClr
 then
 ;
 
@@ -180,6 +200,7 @@ millBuff @ currScreen currRow uiArr 2 cells + @ !
 
 : UINumSave
 UIbuf2Var
+uartSaveReg
 lcdClear
 currScreen currRow UIPrintLineOth
 lcdNextLine
@@ -208,6 +229,8 @@ else
     s" Restored" 
     5 ms
 then ;
+
+
 
 
 marker UI_HERE

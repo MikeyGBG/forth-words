@@ -8,8 +8,8 @@ $40 $40 $30 $0 task: tButRead
 $40 $40 $80 $0 task: tButExec
 $40 $40 $40 $0 task: tLCD
 
-: butSave UIVarSave ;
-: butRestore UIVarRes ;
+: butSave armDevice ;
+: butRestore manArm ;
 : but0 0 UINumIn ;
 : but1 1 UINumIn ;
 : but2 2 UINumIn ;
@@ -99,6 +99,7 @@ again
 boardInit
 lcdSetup
 lcdInit
+uartInit
 butInit
 UIInit
 tempStore
