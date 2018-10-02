@@ -15,7 +15,6 @@ b5 constant LCD_D7
 #2 constant intDel
 4 constant mode
 
-: >digit #48 + ;
 
 : lcdArr create 
 LCD_D0 , LCD_D1 , LCD_D2 , LCD_D3 ,

@@ -8,6 +8,7 @@ $40 $40 $30 $0 task: tButRead
 $40 $40 $80 $0 task: tButExec
 $40 $40 $40 $0 task: tLCD
 
+\ TODO: go through UI for THIS
 : butSave armDevice ;
 : butRestore manArm ;
 : but0 0 UINumIn ;

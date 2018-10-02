@@ -4,13 +4,16 @@ marker UI_UART
 
 0 value uartRegNum
 
+
 : readReg
 [char] r uartSend
 $20 uartSend
 uartRegNum >digit uartSend
 uartEndTrans
+drop
  ;
 
+\ Add print Success
 : setReg
 [char] s uartSend
 $20 uartSend
@@ -22,7 +25,8 @@ uartEndTrans
 
 : armDevice
 [char] a uartSend
-uartEndTrans ;
+uartEndTrans
+;
 
 : convChan
 [char] c uartSend

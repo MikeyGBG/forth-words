@@ -119,17 +119,22 @@ UIPrintLine
 $c0 lcdSend ;
 
 \ \ ||||||||||-- UART TASK --|||||||| | | //
+
+\ TODO: ADD FLAG CHECKS FOR UART FAIL / SUCCESS
 : uartReadRegs
 4 for
     4 r@ - to uartRegNum
     readReg
-    rxExtractNum 0 uartRegNum uiArr 1 cells + !
+    rxExtractNum uartRxBuffer c@ <digit \TODO CHECK HOW MANY NUMS ON STACK
+    0 uartRegNum uiArr 1 cells + !
 next
 ;
 
 : uartSaveReg
 currRow to uartRegNum
-setReg
+setReg       \ check if uart success
+drop
+\ rxExtractNum \ check reg and value against adcReadL
 ;
 
 \ \ -_______________END UART TASK ______//
