@@ -18,6 +18,7 @@ b1 constant U2RX
 0 value txDone
 0 value rxExp
 0 value curPos
+0 value rxDis \ debug
 
 0 IEC1 !
 
@@ -105,6 +106,7 @@ U2RxIntReg ;
 
 
 \\\\\\\\\\ TODO UART TASK FROM HERE DOWN ||||||||||||||||/////////
+\ Should have small tx and extracted rx bufs as user vars
 
 : uNums create 5 allot
 does> + ;
@@ -135,6 +137,7 @@ then
 5 for
     0 r@ uartTxBuf c!
 next
+0 to txBufPos
 ;
 
 : uartBufOut
@@ -185,6 +188,7 @@ else
 then
 ;
 
+\ TODO: ADD FLAG FOR EMPTY BUFF SO NO SP
 : rxExtractNum 
 0
 begin
@@ -204,16 +208,20 @@ begin
 until
 ;
 
-\ TODO: SHOULD BLOCK UNTIL RX FIN
-\ AND CHECK FOR FAIL ALOS ADD TIMEOUT HERE
-: uartEndTrans
-#13 uartSend
-1 to rxExp
-txBufClr
-5 for
+( n1 n2 --  )
+\  n1*n2 = timeout_period
+\ Add a break on RxExp = 0
+: uartWaitRecv
+for
     recvFin
-    5 ms
+    dup ms
 next
+drop ;
+
+( -- n )
+\ n is a flag left indicating the recieved message state
+\ 0 'ok' received, 1 'fail, 2 timeout, 3 corrupt message
+: uartProcRecv
 rxExp 0= if
     \ uart completed -> check if fail or succeed
     curPos 8 - uartRxBuffer c@ $6b = if
@@ -227,18 +235,46 @@ else
     \ Could set a variable in RX INT as Reset causes uart same as key press
     \ uart didnt complete print error
     \ SHOULD HANDLE THESE IN UI FOR NOW --------
-    0 to rxExp  \ timeout
-   \  50 ms
-    2
+    curPos 0= if
+        0 to rxExp  \ timeout
+        2
+    else
+        \ corupt message should wait for more with short timeout
+        \ maybe reset uart?
+        1 5 uartWaitRecv
+        3
+    then
 then
+;
 
- ;
 
-: uartPrintSN
-uartPrintS
-uartBufOut
+: uartEndTrans
+0 to curPos \ reset the uart recv buf position
+1 to rxExp
+#13 uartSend
+txBufClr
+rxDis 0= if
+    \ wait for uart recieve to finish
+    5 5 uartWaitRecv
+    uartProcRecv
+then
+;
+
+( n1 n2 -- n3 )
+\ n1 is a char to send n2 is a number 
+\ n3 is the flag left by th
+: uartFullTrans
+swap
+uartSend
+$20 uartSend \ send a space
+>digit uartSend
 uartEndTrans
 ;
+
+\ NEED A BUFF 2 NUM and NUM 2 BUFF FNS
+
+\ SHOULD PROCESS IMPORTANT MESSAGE PART INTO A BUFF -> UI
+
 
 
 

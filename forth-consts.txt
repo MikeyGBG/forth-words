@@ -105,6 +105,11 @@ bport b13 1 cells + !
 bport b14 1 cells + !
 15 b15 !
 bport b15 1 cells + !
+
+\ Switch to the AIVT and copy OS interrupts
+11 int/ \ Copy T1Interrupt into aivt
+19 int/ \ Copy U1RXInterrupt into aivt
+aivt
 ;
 
 boardInit

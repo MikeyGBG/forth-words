@@ -30,7 +30,7 @@ $40 $40 $40 $0 task: tLCD
     0 millBuff !
 else
     0 to selected
-    UINumSave
+    UILeaveSelect
 then ;
 
 : butMode
@@ -38,7 +38,9 @@ currScreen 0= if
     1 to currScreen
 else
     0 to currScreen
-then ;
+then
+UIModeSwitch
+ ;
 
 : butUp
 currRow 1 - dup 0< if

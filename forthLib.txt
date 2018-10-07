@@ -41,3 +41,58 @@
 workVarInit drop
 
 : >digit #48 + ;
+: <digit #48 - ;
+
+\ converts a number into a buffer 123 -> 1 2 3
+: n2b
+    dup workVar u/ 10 mod dup
+    0= if
+        workBit 1 = if
+            swap
+        else
+            r@ 0 = if
+                swap
+            else
+                drop
+            then
+        then
+    else
+        swap 1 to workBit
+    then
+;
+
+: num2Buff
+1 to workVar
+0 to workBit
+5 for
+    n2b
+    workVar 10 * to workVar
+next drop ;
+
+: num2RevBuff
+10000 to workVar
+0 to workBit
+5 for
+    n2b
+    workVar 10 u/ to workVar
+next drop ;
+
+
+( -- n)
+\ leaves the number of cells on stack
+: sp@? sp@ 2398 - 2 / ;
+
+\ Adds a number to the buffer
+( n -- ) takes a buffer as TOS
+: addNumToBuff
+dup @ 9999 < if
+    @ 10 * + thouBuff !
+then
+;
+
+: buff2Num
+sp@? for
+    addNumToBuff
+next 
+thouBuff
+;
