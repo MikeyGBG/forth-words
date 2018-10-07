@@ -271,6 +271,13 @@ $20 uartSend \ send a space
 uartEndTrans
 ;
 
+( n -- )
+: uartPrintNum
+num2Buff
+sp@? for
+    >digit uartSend
+next ;
+
 \ NEED A BUFF 2 NUM and NUM 2 BUFF FNS
 
 \ SHOULD PROCESS IMPORTANT MESSAGE PART INTO A BUFF -> UI

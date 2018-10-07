@@ -174,7 +174,7 @@ currScreen 0= if
     lcdClear lcdHome
     currScreen currRow uiArr dup @ execute lcdPrintS
     lcdNextLine
-    lcdPrintBuff
+    lcdBuff lcdPrintBuff
     $ce lcdSend
     3 cells + @ execute lcdPrintS
 else
@@ -196,25 +196,19 @@ lcdHome
 then
 ;
 
-\ TODO ONLY LOAD txBuf on save
 : UINumIn 
 selected 1 = if
-    addToBuff
+    \ addToBuff
+    lcdBuff addNumToBuff
 else
-    clrBuff
+    clrLcdBuff
     txBufClr
 then
 ;
 
 : UIbuf2Var
-thouBuff @ currScreen currRow uiArr 1 cells + @ !
-millBuff @ currScreen currRow uiArr 2 cells + @ !
-;
-
-: UILeaveSelect
-UINumSave
-currScreen currRow uiArr 1 cells + @ @
-uartReadRegs
+lcdBuff @ currScreen currRow uiArr 1 cells + @ !
+\ millBuff @ currScreen currRow uiArr 2 cells + @ !
 ;
 
 \ could do inital reg reads here if start in other mode
@@ -230,6 +224,12 @@ lcdNextLine
 s" Saved" lcdPrintS
 5 ms ;
 
+: UILeaveSelect
+UINumSave
+uartReadRegs
+;
+
+
 : UIVarSave 
 selected 1 = if 
     UINumSave
@@ -243,8 +243,8 @@ then ;
 
 : UIVarRes 
 selected 1 = if
-    currScreen currRow uiArr 1 cells + @ @ thouBuff !
-    currScreen currRow uiArr 2 cells + @ @ millBuff !
+    currScreen currRow uiArr 1 cells + @ @ lcdBuff !
+   \ currScreen currRow uiArr 2 cells + @ @ millBuff !
 else
     lcdClear
     s" all Vars" lcdPrintS
