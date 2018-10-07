@@ -188,26 +188,6 @@ else
 then
 ;
 
-\ TODO: ADD FLAG FOR EMPTY BUFF SO NO SP
-: rxExtractNum 
-0
-begin
-    begin
-        1 + 
-        dup 1 - dup curPos < if
-            numEnd invert
-        else
-            drop true
-        then
-    until
-    dup curPos < if
-        dup 1 - swap false
-    else
-        drop true
-    then
-until
-;
-
 ( n1 n2 --  )
 \  n1*n2 = timeout_period
 \ Add a break on RxExp = 0
@@ -267,18 +247,71 @@ then
 swap
 uartSend
 $20 uartSend \ send a space
->digit uartSend
+>digit uartSend 
 uartEndTrans
 ;
 
 ( n -- )
-: uartPrintNum
+: uartPrintN
 num2Buff
 sp@? for
     >digit uartSend
 next ;
 
-\ NEED A BUFF 2 NUM and NUM 2 BUFF FNS
+
+
+0 value loopVar
+: rxExtractBufs
+SP_AT >r
+0 to loopVar
+begin
+\ loop over rxBuffer
+    begin
+    \ loop until a number is found
+    loopVar curPos < if
+        loopVar numEnd invert 0= if
+            loopVar 1 + to loopVar
+            false
+        else
+            0
+            true
+        then
+    else
+        true
+    then
+    until
+    sp@ to SP_AT
+    begin
+    \ loop until the end of the number is found
+    loopVar curPos < if
+        loopVar uartRxBuffer c@ <digit
+        sp@ 2 - addNumToBuff
+        loopVar 1 + to loopVar
+        loopVar numEnd
+    else
+        true
+    then
+    until
+    loopVar curPos < if
+        false
+    else
+        true
+    then
+until
+r> to SP_AT ;
+
+\ takes number of expected numbers returns same or error
+( n -- n ... )
+: rxGetNums
+SP_AT >r
+sp@ to SP_AT
+rxExtractBufs
+sp@? SP_AT @ = if
+    \ correct amount of numbers
+else
+    \ incorrect amount of numbers
+then
+;
 
 \ SHOULD PROCESS IMPORTANT MESSAGE PART INTO A BUFF -> UI
 

@@ -43,56 +43,79 @@ workVarInit drop
 : >digit #48 + ;
 : <digit #48 - ;
 
+2398 value SP_AT
+
+( -- n)
+\ leaves the number of cells on stack
+: sp@? 
+SP_AT 2399 < if
+    2398 to SP_AT
+then
+    sp@ SP_AT - 2 / 
+;
+
 \ converts a number into a buffer 123 -> 1 2 3
 : n2b
     dup workVar u/ 10 mod dup
     0= if
         workBit 1 = if
             swap
-        else
-            r@ 0 = if
-                swap
-            else
-                drop
-            then
         then
     else
         swap 1 to workBit
     then
 ;
 
+: cleanBuff
+begin
+sp@? 0 > if
+    dup 0= if
+        drop false
+    else
+        true
+    then
+else
+0 true
+then
+until ;
+
 : num2Buff
+sp@ 2 - to SP_AT \ set stack pointer to 1 below TOS
 1 to workVar
 0 to workBit
 5 for
     n2b
     workVar 10 * to workVar
-next drop ;
+next drop
+cleanBuff ;
 
+\ NOT TESTED (WONT WORK)
 : num2RevBuff
+sp@ 2 - to SP_AT
 10000 to workVar
 0 to workBit
 5 for
     n2b
     workVar 10 u/ to workVar
-next drop ;
-
-
-( -- n)
-\ leaves the number of cells on stack
-: sp@? sp@ 2398 - 2 / ;
+next drop
+cleanBuff ;
 
 \ Adds a number to the buffer
-( n -- ) takes a buffer as TOS
+\
+( n1 n2 -- ) 
 : addNumToBuff
 dup @ 9999 < if
-    @ 10 * + thouBuff !
+   dup @ 10 * rot + swap !
+else
+    !
 then
 ;
 
+\ needs SP_AT set before use
+(n1 n2 n3 -- n123 )
 : buff2Num
-sp@? for
-    addNumToBuff
-next 
-thouBuff
+0
+sp@? 1 - for
+    10 * +
+next
 ;
