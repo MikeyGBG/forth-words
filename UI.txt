@@ -1,6 +1,5 @@
 marker UI_START
 decimal
-: <digit #48 - ;
 
 2 constant LCD_ROWS    \ number of rows displayed on lcd
 4 constant UI_ROWS     \ number of rows per UI screen
@@ -11,8 +10,8 @@ decimal
 0 value selected       \ if row is selected
 
 \ USER VARIABLES ACCESSIBLE TO UART TASK
-0 variable trigLevL drop
-0 variable delay1L drop
+100 variable trigLevL drop
+120 variable delay1L drop
 0 variable delay2L drop
 0 variable delay3L drop
 0 variable dacReadL drop
@@ -48,13 +47,13 @@ UIARR uiArr
 
 : string03  s" D3" ;
 
-: string10 s" Ref" ;
+: string10 s" ARM" ;
 
-: string11 s" Input" ;
+: string11 s" manArm" ;
 
 : string12 s" Outputs" ;
 
-: string13 s" null" ;
+: string13 s" Input" ;
 
 : stringMV s" mV" ;
 
@@ -123,24 +122,90 @@ $c0 lcdSend ;
 
 \ \ ||||||||||-- UART TASK --|||||||| | | //
 
-\ TODO: NEED TO ADD RESETS TO CURPOS SOMEWHERE
+\ TODo NEED TO ADD RESETS TO CURPOS SOMEWHERE
+
+: UIHandleUartErr
+lcdClear
+dup
+101 = if
+    \ time out
+    s" UART TIMEOUT"
+    lcdPrintS
+    drop
+else
+    102 = if
+    \ corrupt message
+        s" CORRUPT MESSAGE"
+        lcdPrintS
+        
+    else
+    \ incorrect numbers
+        s" Wrong Nums"
+        lcdPrintS
+    then
+then
+100 ms
+;
+
+( n n -- )
+\ expects status left by UartEnd Trans NOS
+\ number of buffs to extract TOS
+: uartCheckErr
+swap
+dup
+0= if
+    drop
+    \ message "ok"
+    rxGetNums dup 0= if
+        \ leaves 0 for correct Nums
+    else
+        \ Hands the amount of numbers to handleError
+        UIHandleUartErr
+    then
+else
+    \ fail, timeout or corrupt
+    UIHandleUartErr
+    \ leaves same flag as uartEndTrans
+then ;
 
 \ TODO: ADD FLAG CHECKS FOR UART FAIL / SUCCESS
 \ UART should have words for number extraction from rxBuf
 : uartReadRegs
+SP_AT >r
 4 for
+    sp@ to SP_AT
     4 r@ - to uartRegNum
-    readReg
-    rxExtractNum uartRxBuffer c@ <digit \ TODO Combine chars into single num
-    0 uartRegNum uiArr 1 cells + @ !
+    readReg 1
+    uartCheckErr 0= if
+        \ set UI variable
+        currScreen uartRegNum uiArr 1 cells + @ !
+    then
+    \ clear any left over nums from stack
+    consumeSP 
 next
+r> to SP_AT
 ;
 
 : uartSaveReg
+SP_AT >r
 currRow to uartRegNum
-setReg       \ check if uart success
-drop
-\ rxExtractNum \ check reg and value against adcR
+sp@ to SP_AT
+lcdBuff @
+setReg 2
+uartCheckErr 0= if
+    \ reg num then value on stack
+    \ Store returned value in UI
+    swap dup uartRegNum = if
+        currScreen swap uiArr 1 cells + @ !
+    else
+        lcdClear
+        s" WRONG REG"
+        lcdPrintS
+        100 ms
+    then
+then
+consumeSP
+r> to SP_AT
 ;
 
 \ Set regs to default vals
@@ -216,8 +281,9 @@ lcdBuff @ currScreen currRow uiArr 1 cells + @ !
 ;
 
 : UINumSave
-UIbuf2Var
+\ UIbuf2Var
 uartSaveReg
+clrLcdBuff
 lcdClear
 currScreen currRow UIPrintLineOth
 lcdNextLine

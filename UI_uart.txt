@@ -10,16 +10,15 @@ marker UI_UART
 $20 uartSend
 uartRegNum >digit uartSend
 uartEndTrans
-drop
  ;
 
-\ Add print Success
+( n -- )
 : setReg
 [char] s uartSend
 $20 uartSend
 uartRegNum >digit uartSend
 $20 uartSend
-uartBufOut
+uartPrintN
 uartEndTrans
 ;
 
@@ -50,3 +49,42 @@ uartEndTrans ;
 [char] s uartSend
 uartEndTrans ;
 
+\ TODO REMOVE THIS AS DEBUG
+: philRxRead
+$0d 0 uartRxBuffer c!
+[char] 3 1 uartRxBuffer c!
+[char] 5 2 uartRxBuffer c!
+$20 3 uartRxBuffer c!
+[char] o 4 uartRxBuffer c!
+[char] k 5 uartRxBuffer c!
+$0d 6 uartRxBuffer c!
+$0a 7 uartRxBuffer c!
+[char] c 8 uartRxBuffer c!
+[char] m 9 uartRxBuffer c!
+[char] d 10 uartRxBuffer c!
+[char] > 11 uartRxBuffer c!
+$20 12 uartRxBuffer c!
+13 to curPos ;
+
+: philRxSet
+$0d 0 uartRxBuffer c!
+[char] r 1 uartRxBuffer c!
+[char] e 2 uartRxBuffer c!
+[char] g 3 uartRxBuffer c!
+[char] [ 4 uartRxBuffer c!
+[char] 2 5 uartRxBuffer c!
+[char] ] 6 uartRxBuffer c!
+$20 7 uartRxBuffer c!
+[char] 5 8 uartRxBuffer c!
+[char] 3 9 uartRxBuffer c!
+$20 10 uartRxBuffer c!
+[char] o 11 uartRxBuffer c!
+[char] k 12 uartRxBuffer c!
+$0d 13 uartRxBuffer c!
+$0a 14 uartRxBuffer c!
+[char] c 15 uartRxBuffer c!
+[char] m 16 uartRxBuffer c!
+[char] d 17 uartRxBuffer c!
+[char] > 18 uartRxBuffer c!
+$20 19 uartRxBuffer c!
+20 to curPos ;

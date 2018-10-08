@@ -26,6 +26,7 @@ $40 $40 $40 $0 task: tLCD
 
 : butSelect selected 0= if
     1 to selected
+    \ SHOULD DO THIS ELSEWHERE
     0 thouBuff !
     0 millBuff !
 else

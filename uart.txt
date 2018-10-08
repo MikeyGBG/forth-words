@@ -19,6 +19,7 @@ b1 constant U2RX
 0 value rxExp
 0 value curPos
 0 value rxDis \ debug
+0 variable uDebugExec drop
 
 0 IEC1 !
 
@@ -105,7 +106,7 @@ $400 U2STA !
 U2RxIntReg ;
 
 
-\\\\\\\\\\ TODO UART TASK FROM HERE DOWN ||||||||||||||||/////////
+\ \\\\\\\\\ TODO UART TASK FROM HERE DOWN ||||||||||||||||/////////
 \ Should have small tx and extracted rx bufs as user vars
 
 : uNums create 5 allot
@@ -217,25 +218,31 @@ else
     \ SHOULD HANDLE THESE IN UI FOR NOW --------
     curPos 0= if
         0 to rxExp  \ timeout
-        2
+        101
     else
         \ corupt message should wait for more with short timeout
         \ maybe reset uart?
         1 5 uartWaitRecv
-        3
+        102
     then
 then
 ;
 
-
+\ REMOVE DEBUG BRANCH
 : uartEndTrans
 0 to curPos \ reset the uart recv buf position
 1 to rxExp
+20 ms
 #13 uartSend
 txBufClr
 rxDis 0= if
     \ wait for uart recieve to finish
-    5 5 uartWaitRecv
+    10 5 uartWaitRecv
+    uartProcRecv
+
+else
+    uDebugExec @ex
+    0 to rxExp
     uartProcRecv
 then
 ;
@@ -301,16 +308,19 @@ until
 r> to SP_AT ;
 
 \ takes number of expected numbers returns same or error
-( n -- n ... )
+( n -- n n ... )
 : rxGetNums
 SP_AT >r
 sp@ to SP_AT
 rxExtractBufs
 sp@? SP_AT @ = if
     \ correct amount of numbers
+    0
 else
     \ incorrect amount of numbers
+    1
 then
+r> to SP_AT
 ;
 
 \ SHOULD PROCESS IMPORTANT MESSAGE PART INTO A BUFF -> UI

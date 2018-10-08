@@ -43,27 +43,23 @@ workVarInit drop
 : >digit #48 + ;
 : <digit #48 - ;
 
-2398 value SP_AT
+\ Any words changing this value should restore to previous
+sp@ value SP_IN
+sp@ value SP_AT
 
 ( -- n)
 \ leaves the number of cells on stack
 : sp@? 
-SP_AT 2399 < if
-    2398 to SP_AT
+SP_AT SP_IN 1 + < if
+    SP_IN to SP_AT
 then
-    sp@ SP_AT - 2 / 
+    sp@ SP_AT - 2 /
 ;
 
 \ converts a number into a buffer 123 -> 1 2 3
 : n2b
-    dup workVar u/ 10 mod dup
-    0= if
-        workBit 1 = if
-            swap
-        then
-    else
-        swap 1 to workBit
-    then
+    dup workVar u/ 10 mod
+    swap
 ;
 
 : cleanBuff
@@ -119,3 +115,12 @@ sp@? 1 - for
     10 * +
 next
 ;
+
+: consumeSP
+begin
+sp@? 0= if
+    true
+else
+    drop false
+then
+until ;
