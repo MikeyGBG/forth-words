@@ -10,8 +10,8 @@ decimal
 0 value selected       \ if row is selected
 
 \ USER VARIABLES ACCESSIBLE TO UART TASK
-100 variable trigLevL drop
-120 variable delay1L drop
+0 variable trigLevL drop
+0 variable delay1L drop
 0 variable delay2L drop
 0 variable delay3L drop
 0 variable dacReadL drop
@@ -30,7 +30,9 @@ decimal
 0 value UIVar
 0 value UIReg
 
-
+: setInitial
+100 trigLevL !
+120 delay1L ! ;
 
 : UIARR
 create UI_SCREENS UI_ROWS 4 * * cells allot 
@@ -51,13 +53,14 @@ UIARR uiArr
 
 : string11 s" manArm" ;
 
-: string12 s" Outputs" ;
+: string12 s" Restore Regs" ;
 
-: string13 s" Input" ;
+: string13 s" Version" ;
 
 : stringMV s" mV" ;
 
 : stringuS s" us" ;
+: sringNull s" " ;
 
 : UIInit
 $0c lcdSend    \ Turn the cursor and blink off
@@ -84,15 +87,17 @@ dacReadH 1 0 uiArr 2 cells + !
 ['] string11 1 1 uiArr !
 adcReadL 1 1 uiArr 1 cells + !
 adcReadH 1 1 uiArr 2 cells + !
-['] stringMV 1 1 uiArr 3 cells + !
+['] stringUs 1 1 uiArr 3 cells + !
 ['] string12 1 2 uiArr !
 outLevsL 1 2 uiArr 1 cells + !
 outLevsH 1 2 uiArr 2 cells + !
-['] stringMV 1 2 uiArr 3 cells + !
+['] stringNull 1 2 uiArr 3 cells + !
 ['] string13 1 3 uiArr !
 outLevsL 1 3 uiArr 1 cells + !
 outLevsH 1 3 uiArr 2 cells + !
-['] stringMV 1 3 uiArr 3 cells + !
+['] stringNull 1 3 uiArr 3 cells + !
+0 to rxStart
+setInitial
 ;
 
 ( nn -- UI_SCREEN NOS UI_ROW TOS)
@@ -131,6 +136,8 @@ dup
     \ time out
     s" UART TIMEOUT"
     lcdPrintS
+    \ disable UI until uart conn re-established
+    0 to rxStart
     drop
 else
     102 = if
@@ -174,7 +181,7 @@ then ;
 SP_AT >r
 4 for
     sp@ to SP_AT
-    4 r@ - to uartRegNum
+    4 1 - r@ - to uartRegNum
     readReg 1
     uartCheckErr 0= if
         \ set UI variable
@@ -188,7 +195,7 @@ r> to SP_AT
 
 : uartSaveReg
 SP_AT >r
-currRow to uartRegNum
+to uartRegNum
 sp@ to SP_AT
 lcdBuff @
 setReg 2
@@ -210,7 +217,35 @@ r> to SP_AT
 
 \ Set regs to default vals
 : uartInitRegs
+4 for
+    r@ dup 0 swap uiArr 1 cells + @ @ lcdBuff !
+    uartSaveReg
+next
+0 lcdBuff !
 ;
+
+
+: waitForUartRec
+begin
+    lcdClear
+    s" Waiting For" lcdPrintS
+    lcdNextLine 
+    s" UART" lcdPrintS
+    $0d uartSend
+    250 ms
+    rxStart 1 =
+until ;  
+
+: UIcheckUart
+rxStart 0= if
+    waitForUartRec
+    0 to selected
+    0 to currScreen
+    0 to currRow
+    uartInitRegs
+    uartReadRegs
+then ;
+
 \ \ -_______________END UART TASK ______//
 
 
@@ -245,10 +280,17 @@ currScreen 0= if
 else
     0 to selected
     UIPrintOptions
+    currRow uartSendCmd
+    dup 0= if
+        drop
+    else
+        UIHandleUartErr
+    then
 then
 ;
 
 : UIPrintScreen
+UIcheckUart
 currRow LCD_ROWS mod to UIReg
 currRow UI_ROWS < if
     lcdClear lcdHome
@@ -282,7 +324,7 @@ lcdBuff @ currScreen currRow uiArr 1 cells + @ !
 
 : UINumSave
 \ UIbuf2Var
-uartSaveReg
+currRow uartSaveReg
 clrLcdBuff
 lcdClear
 currScreen currRow UIPrintLineOth
@@ -318,6 +360,5 @@ else
     s" Restored" 
     5 ms
 then ;
-
 
 marker UI_HERE

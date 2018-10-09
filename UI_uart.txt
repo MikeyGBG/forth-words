@@ -10,6 +10,7 @@ marker UI_UART
 $20 uartSend
 uartRegNum >digit uartSend
 uartEndTrans
+\ 1 \ amount of numbers that should be present
  ;
 
 ( n -- )
@@ -20,6 +21,7 @@ uartRegNum >digit uartSend
 $20 uartSend
 uartPrintN
 uartEndTrans
+\ 2   \ amount of numbers that should be present
 ;
 
 : armDevice
@@ -48,6 +50,16 @@ uartEndTrans ;
 : regSave
 [char] s uartSend
 uartEndTrans ;
+
+: uartSendCmd
+dup 0= if
+    drop armDevice
+else
+    1 = if
+        manArm
+    then
+then 
+;
 
 \ TODO REMOVE THIS AS DEBUG
 : philRxRead

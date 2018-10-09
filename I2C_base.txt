@@ -31,7 +31,7 @@ $8000 I2C1CON !
 
 : i2c.idle? ( -- f )
 %00011111 I2C1CON mtst \ ACKEN RCEN REN RSEN SEN
-%100 I2C1STAT mtst \ R/^W 
+%0100000000000100 I2C1STAT mtst \ R/^W 
 or 0=
 ;
 
@@ -39,19 +39,20 @@ or 0=
 begin i2c.idle? until
 \ mSSP1IF ifs1 mclr
 $1 I2C1CON mset
-i2c.wait
+begin i2c.idle? until
 ;
 
 : i2c.rsen ( -- ) \ Send repeated start condition
   \ mSSP1IF ifs1 mclr
   $2 I2C1CON mset
-  i2c.wait
+  begin i2c.idle? until
 ;
 
 : i2c.stop ( -- ) \ Send stop condition
   \ mSSP1IF ifs1 mclr
+  begin i2c.idle? until
   $4 I2C1CON mset
-  i2c.wait
+  begin i2c.idle? until
 ;
 
 : i2c.buf.full? ( -- f ) 
@@ -95,7 +96,8 @@ i2c.wait
 \ Address slave for writing, leaves true if slave ready.
 : i2c.addr.write ( 7-bit-addr -- f )
   1 lshift 1 invert and \ Build full byte with write-bit as 0
-  i2c.start i2c.c! 0=
+  i2c.start 
+  i2c.c! 0=
 ;
 
 \ Address slave for reading, leaves true if slave ready.
@@ -133,4 +135,6 @@ next
 
 : i2c.reset
 $2 ifs1 mclr
-0 I2C1STAT ! ;
+0 I2C1CON !
+0 I2C1STAT !
+$9000 I2C1CON ! ;
