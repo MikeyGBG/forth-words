@@ -115,7 +115,6 @@ next ;
 1 cells + ! ;
 
 : butSingleExec
-0 update !
 colCount for
     colCount 1 - r@ - to colVar
     rowCount for

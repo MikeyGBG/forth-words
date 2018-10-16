@@ -9,8 +9,16 @@ $40 $40 $80 $0 task: tButExec
 \ $40 $40 $40 $0 task: tLCD
 
 \ TODO: go through UI for THIS
-: butSave armDevice ;
-: butRestore manArm ;
+: butSave 
+1 to currScreen
+0 to currRow
+UISelect ;
+
+: butRestore
+1 to currScreen
+0 to currRow
+UISelect ;
+
 : but0 0 UINumIn ;
 : but1 1 UINumIn ;
 : but2 2 UINumIn ;
@@ -87,7 +95,7 @@ butSingleExec
 update @ 1 = if
     UIPrintScreen
 then
-500 ms
+250 ms
 again ;
 
 : lcdTask
