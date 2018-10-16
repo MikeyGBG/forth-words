@@ -21,6 +21,8 @@ b9 constant col3
 4 constant colCount
 4 constant rowCount
 
+0 value butDebug
+
 \ NOT USED IN CODE NEED TO !!!! (4 but no WOKR)
 $f constant colOff
 
@@ -92,6 +94,9 @@ colCount for
             1 rowCount 1 - r@ - lshift to rowVar
             rowVar rowVal and 0= if
                 colVal $f xor convNum rowVar convNum butAr dup
+                butDebug 1 = if
+                    colVal $f xor convNum . rowVar convNum .
+                then
                 @ 0= if
                     1 swap !
                 else

@@ -4,9 +4,9 @@ decimal
 variable taskCount
 0 taskCount !
 
-$40 $40 $30 $0 task: tButRead
+$0 $40 $80 $0 task: tButRead
 $40 $40 $80 $0 task: tButExec
-$40 $40 $40 $0 task: tLCD
+\ $40 $40 $40 $0 task: tLCD
 
 \ TODO: go through UI for THIS
 : butSave armDevice ;
@@ -27,8 +27,8 @@ $40 $40 $40 $0 task: tLCD
 : butSelect selected 0= if
     1 to selected
     \ SHOULD DO THIS ELSEWHERE
-    0 thouBuff !
-    0 millBuff !
+    0 lcdBuff !
+   \  0 millBuff !
 else
     0 to selected
     UILeaveSelect
@@ -37,8 +37,10 @@ then ;
 : butMode
 currScreen 0= if
     1 to currScreen
+    0 to currRow
 else
     0 to currScreen
+    0 to currRow
 then
 UIModeSwitch
  ;
@@ -73,7 +75,7 @@ then ;
 : butReadTask
 begin
 butRead
-20 ms
+10 ms
 again
 ;
 
@@ -101,7 +103,7 @@ again
 
 : oInit
 boardInit
-lcdSetup
+\ lcdSetup
 lcdInit
 uartInit
 butInit

@@ -22,7 +22,6 @@ LCD_D4 , LCD_D5 , LCD_D6 , LCD_D7 ,
 ;
 
 lcdArr lcdPin
-boardInit
 
 ( change this so uses lcdArr )
 : lcdSetup
@@ -48,7 +47,6 @@ LCD_D7 lcdPin 7 cells + !
 0 LCD_D7 pinInit
 ;
 
-lcdSetup
 
 marker LCD-setup
 

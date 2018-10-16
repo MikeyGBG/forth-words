@@ -111,5 +111,3 @@ bport b15 1 cells + !
 19 int/ \ Copy U1RXInterrupt into aivt
 aivt
 ;
-
-boardInit

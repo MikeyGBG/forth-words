@@ -22,6 +22,7 @@ b1 constant U2RX
 0 variable uDebugExec drop
 
 0 IEC1 !
+0 value rxStart
 
 \ untest and interrupts
 : uBuf create 60 allot
@@ -74,6 +75,7 @@ then ;
 : U2RXInt [i
 di
 $4000 IFS1 mclr
+1 to rxStart
 rxExp 1 = if
     begin 1 U2STA @ and 1 =
         U2RXREG @ curPos uartRxBuffer c!
@@ -228,11 +230,14 @@ else
 then
 ;
 
+\ wrapped to remove thigns from stack that shouldnt be there
 \ REMOVE DEBUG BRANCH
 : uartEndTrans
+SP_AT >r
+sp@ to SP_AT
 0 to curPos \ reset the uart recv buf position
-1 to rxExp
 20 ms
+1 to rxExp
 #13 uartSend
 txBufClr
 rxDis 0= if
@@ -245,6 +250,10 @@ else
     0 to rxExp
     uartProcRecv
 then
+>r
+consumeSP
+r>
+r> to SP_AT
 ;
 
 ( n1 n2 -- n3 )

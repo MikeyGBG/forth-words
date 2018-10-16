@@ -33,11 +33,18 @@ uartEndTrans
 [char] c uartSend
 $20 uartSend
 uartBufOut
-uartEndTrans ;
+uartEndTrans
+ ;
 
 : manArm
+SP_AT >r
+sp@ to SP_AT
 [char] m uartSend
-uartEndTrans ;
+uartEndTrans
+>r
+consumeSP
+r>
+r> to SP_AT ;
 
 : digOut
 [char] d uartSend
@@ -51,15 +58,18 @@ uartEndTrans ;
 [char] s uartSend
 uartEndTrans ;
 
-: uartSendCmd
-dup 0= if
-    drop armDevice
-else
-    1 = if
-        manArm
-    then
-then 
+\ wrapped as was returning more vals than shouldve
+: getVersion
+SP_AT >r
+sp@ to SP_AT
+[char] v uartSend
+uartEndTrans
+>r
+consumeSP
+r>
+r> to SP_AT
 ;
+
 
 \ TODO REMOVE THIS AS DEBUG
 : philRxRead

@@ -60,7 +60,8 @@ UIARR uiArr
 : stringMV s" mV" ;
 
 : stringuS s" us" ;
-: sringNull s" " ;
+
+: stringNull s" null" ;
 
 : UIInit
 $0c lcdSend    \ Turn the cursor and blink off
@@ -87,7 +88,7 @@ dacReadH 1 0 uiArr 2 cells + !
 ['] string11 1 1 uiArr !
 adcReadL 1 1 uiArr 1 cells + !
 adcReadH 1 1 uiArr 2 cells + !
-['] stringUs 1 1 uiArr 3 cells + !
+['] stringuS 1 1 uiArr 3 cells + !
 ['] string12 1 2 uiArr !
 outLevsL 1 2 uiArr 1 cells + !
 outLevsH 1 2 uiArr 2 cells + !
@@ -107,8 +108,13 @@ uiArr dup dup @ execute lcdPrintS
 #32 lcdWrite
 \ dup 1 cells + @ @
 \ swap 2 cells + @ @ lcdPrintD
-1 cells + @ @ lcdPrintN
-3 cells + @ execute lcdPrintS
+currScreen 0= if
+    1 cells + @ @ lcdPrintN
+    3 cells + @ execute lcdPrintS
+else
+    drop drop
+then
+
 ;
 
 : UIPrintLineSel
@@ -246,6 +252,52 @@ rxStart 0= if
     uartReadRegs
 then ;
 
+: uartSendCmd
+dup 0= if
+    drop armDevice
+    dup 0= if
+        s" Device"
+        lcdPrintS
+        lcdNextLine
+        s" Armed"
+        100 ms
+    then
+else
+    dup
+    1 = if
+        drop manArm
+        dup 0= if
+            lcdClear
+            s" Device"
+            lcdPrintS
+            lcdNextLine
+            s" Ready"
+            lcdPrintS
+            100 ms
+        then
+    else
+        2 = if
+            setInitial
+            uartInitRegs
+            0
+            lcdClear
+            s" All Vars" lcdPrintS
+            lcdNextLine
+            s" Restored" 
+            100 ms
+        else
+            getVersion
+            dup 0= if
+                lcdClear
+                s" Version"
+                lcdPrintS
+                100 ms
+            then
+        then 
+    then
+then 
+;
+
 \ \ -_______________END UART TASK ______//
 
 
@@ -282,7 +334,7 @@ else
     UIPrintOptions
     currRow uartSendCmd
     dup 0= if
-        drop
+        drop 
     else
         UIHandleUartErr
     then
@@ -318,8 +370,7 @@ lcdBuff @ currScreen currRow uiArr 1 cells + @ !
 \ millBuff @ currScreen currRow uiArr 2 cells + @ !
 ;
 
-\ could do inital reg reads here if start in other mode
-: UIModSwitch
+: UIModeSwitch
 ;
 
 : UINumSave
@@ -330,7 +381,7 @@ lcdClear
 currScreen currRow UIPrintLineOth
 lcdNextLine
 s" Saved" lcdPrintS
-5 ms ;
+100 ms ;
 
 : UILeaveSelect
 UINumSave
@@ -349,16 +400,12 @@ else
     5 ms
 then ;
 
-: UIVarRes 
-selected 1 = if
-    currScreen currRow uiArr 1 cells + @ @ lcdBuff !
+\ : UIVarRes 
+\ selected 1 = if
+  \  currScreen currRow uiArr 1 cells + @ @ lcdBuff !
    \ currScreen currRow uiArr 2 cells + @ @ millBuff !
-else
-    lcdClear
-    s" all Vars" lcdPrintS
-    lcdNextLine
-    s" Restored" 
-    5 ms
-then ;
+\ else
+\     
+\ then ;
 
 marker UI_HERE
